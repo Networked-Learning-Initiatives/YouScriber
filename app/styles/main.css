@@ -100,6 +100,7 @@ body {
   opacity: 0.75;
   padding: 6px;
   margin-bottom: 10px;
+  cursor: pointer;
 }
 
 .comments li:nth-child(odd) {
