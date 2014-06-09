@@ -11,8 +11,7 @@ angular.module('youScriberApp', [
   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
-        templateUrl: 'views/main.html',
-        controller: 'MainCtrl'
+        redirectTo: '/jofNR_WkoCE'
       })
       .when('/:videoId', {
         templateUrl: 'views/main.html',
