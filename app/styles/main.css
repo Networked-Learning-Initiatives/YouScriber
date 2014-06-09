@@ -99,7 +99,7 @@ body {
   border-radius: 16px;
   opacity: 0.75;
   padding: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
   cursor: pointer;
 }
 
@@ -117,4 +117,8 @@ body {
 
 .left-col {
   padding-left: 30px;
+}
+
+.col-md-12 {
+  padding: 30px;
 }
