@@ -1,6 +1,6 @@
 /* Space out content a bit */
 body {
-  padding-top: 20px;
+  /*padding-top: 20px;*/
   padding-bottom: 20px;
   overflow: hidden;
 }
@@ -121,4 +121,29 @@ body {
 
 .col-md-12 {
   padding: 30px;
+}
+
+.youscriber-view {
+  margin-top: 50px;
+}
+
+.youscriber .navbar-nav.navbar-right:last-child {
+  margin-right: -5px;
+}
+
+.video-panel {
+  max-width: 350px;
+  display: inline-block;
+  cursor: pointer;
+  margin-right: 20px;
+}
+
+.video-panel:last-child {
+  margin-right: 0;
+}
+
+.video-panel .panel-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
