@@ -1,0 +1,34 @@
+<div class="row">
+  <div class="col-md-12">
+    <form class="form-inline" role="form">
+      <div class="form-group">
+        <label for="video-id">Enter the youtube video id here</label><br>
+        <input id="video-id" type="text" ng-model="videoIdInProgress" placeholder="Enter a YouTube video id here">
+        <button type="submit" class="btn btn-lg btn-primary" ng-click="changeVideo()">OK</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 left-col">
+    <ys-youtube video-id="videoId" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime" metadata="videoMetadata"></ys-youtube>
+    <form class="form-inline" role="form">
+      <div class="form-group">
+        <label class="sr-only" for="comment">Enter a new comment here</label>
+        <input id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus>
+      </div>
+      <button type="submit" class="btn btn-lg btn-primary" ng-click="post()">Post</button>
+    </form>
+  </div>
+  <div class="col-md-6">
+    {{videoTime}}
+    <ul class="comments">
+      <li ng-repeat="timecomment in comments | timefilter" ng-click="seekTo(timecomment.time)">
+        <span>{{timecomment.time | secondsfilter}} | {{timecomment.comment}}</span>
+      </li>
+    </ul>
+  </div>
+</div>
+<div hidden class="row">
+  {{videoMetadata}}
+</div>
