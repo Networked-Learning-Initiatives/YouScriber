@@ -1,0 +1,23 @@
+{
+  "name": "angular-youtube",
+  "main": "./angular-youtube-player-api.js",
+  "dependencies": {
+    "angular": "~1.0.5"
+  },
+  "ignore": [
+    "test/*",
+    "scripts/*",
+    "config/*"
+  ],
+  "homepage": "https://github.com/arnaudbreton/angular-youtube",
+  "_release": "d678422f54",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "d678422f54315e0624424410cc81feeb2c971e64"
+  },
+  "_source": "git://github.com/arnaudbreton/angular-youtube.git",
+  "_target": "*",
+  "_originalSource": "angular-youtube",
+  "_direct": true
+}
