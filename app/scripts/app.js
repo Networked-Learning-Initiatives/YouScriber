@@ -10,14 +10,15 @@ angular.module('youScriberApp', [
 ])
   .config(function ($routeProvider) {
     $routeProvider
-      .when('/', {
-        redirectTo: '/jofNR_WkoCE'
+      .when('/dash', {
+        templateUrl: 'views/dash.html',
+        controller: 'DashCtrl'
       })
-      .when('/:videoId', {
-        templateUrl: 'views/main.html',
-        controller: 'MainCtrl'
+      .when('/video/:videoId', {
+        templateUrl: 'views/video.html',
+        controller: 'VideoCtrl'
       })
       .otherwise({
-        redirectTo: '/'
+        redirectTo: '/dash'
       });
   });
