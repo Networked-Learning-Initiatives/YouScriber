@@ -2,3 +2,5 @@ node_modules
 app/dist
 .tmp
 .sass-cache
+bower_components/
+dist/

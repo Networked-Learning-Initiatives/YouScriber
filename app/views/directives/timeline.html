@@ -1,0 +1,3 @@
+<div id="timeline" ng-style="{width: width+'px'}" ng-click="seekToPosition($event)">
+  <div class="timepoint" ng-repeat="comment in comments" ng-style="{left:Math.floor(comment.time/duration*width)+'px'}" ng-click="seekToComment(comment.time, $event)" title="{{comment.time | secondsfilter}}" popover="{{comment.time | secondsfilter}} - {{comment.comment}}" popover-trigger="mouseenter" ng-class="{'current-timeline-comment':isCurrentComment(comment)}"></div>
+</div>

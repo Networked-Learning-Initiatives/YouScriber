@@ -1,5 +1,52 @@
-<div class="row">
+<div class="row dash">
   <div class="col-md-12">
+    <!-- Modal -->
+    <div class="modal fade" id="new-video-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">YouTube Video ID</h4>
+          </div>
+          <form class="form-horizontal" role="form" ng-submit="loadVideo()">
+            <div class="modal-body">
+              <p>
+                In order to annotate a video, you must first find its "video id." <a href="http://youtube.com/" target="_blank">Open YouTube in a new tab</a>, search for the video you'd like to annotate, and then click share. Copy the link in the resulting text field, and paste it in the box below.
+              </p>            
+              <div class="form-group" ng-class="{'has-error': errorMessage.length>0}">
+                <label for="inputVideoId" class="col-sm-2 control-label">YouTube Video Id</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="inputVideoId" placeholder="http://youtu.be/dQw4w9WgXcQ" ng-model="newVideoId">
+                  <div class="media help-block" ng-show="errorMessage.length>0">
+                    <a class="pull-left" href="#">
+                      <img class="media-object" width="213" src="images/video-id-help.png" alt="Screenshot of getting the video id for a YouTube video">
+                    </a>
+                    <div class="media-body">
+                      <h4 class="media-heading">{{errorMessage}}</h4>
+                      <p>A videoId should be something like <code>http://youtu.be/dQw4w9WgXcQ</code> or <code>dQw4w9WgXcQ</code>.</p>
+                    </div>
+                  </div>
+                  <!-- <span class="help-block" ng-show="errorMessage.length>0"></span> -->
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Annotate</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
     <video-panel ng-repeat="(videoId,video) in videos" model="video" video-id="videoId"></video-panel>
+    <div class="panel panel-primary video-panel new-video" ng-click="newVideo()">
+      <div class="panel-heading">
+        <h3 class="panel-title" title="Annotate a new video">Annotate a new video</h3>
+      </div>
+      <div class="panel-body">
+        <button type="button" class="btn btn-default"><i class="fa fa-plus"></i><br>Annotate new video</button>
+      </div>
+      <div class="panel-footer">&nbsp;</div>
+    </div>
   </div>
 </div>

@@ -13,11 +13,18 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope) {
   $scope.videoId = $routeParams.videoId;
   $scope.videoIdInProgress = $scope.videoId;
   $scope.videoMetadata = {};
+  var videoScope = $scope;
 
+  $scope.Math = window.Math;
+
+  $scope.isCurrentComment = function(comment){
+    var delta = $scope.videoTime - comment.time;
+    return 0<=delta && delta < 1.3;
+  };
   
   if ($routeParams.hasOwnProperty('videoId')) {
     $scope.videoId = $routeParams.videoId;
@@ -100,7 +107,12 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
 
   $scope.seekTo = function(t) {
     $scope.player.seekTo(t, true);
+    $('textarea#comment').focus();
   };
+
+  $rootScope.$on('seek-to', function(evt, t){
+    videoScope.seekTo(t);
+  });
 
   $scope.changeVideo = function() {
     // $scope.videoId = $scope.videoIdInProgress;

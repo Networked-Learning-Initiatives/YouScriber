@@ -10,7 +10,7 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
       videoMetadata: '=metadata'
     },
     replace: true,
-    templateUrl: 'scripts/directives/youtube/youtube.html',
+    templateUrl: 'views/directives/youtube.html',
     link: function (scope, iElement, iAttrs, controller) {
       var el = document.getElementById('youtube-player-' + scope.playerId);
       // Lets Flash from another domain call JavaScript
@@ -18,7 +18,7 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
       // The element id of the Flash embed
       scope.atts = { 
         id: "ytPlayer-"+scope.playerId, 
-        data: "https://www.youtube.com/v/" + scope.code + "?version=3&enablejsapi=1&playerapiid="+scope.playerId,
+        data: "https://www.youtube.com/v/" + scope.code + "?version=3&controls=0&enablejsapi=1&playerapiid="+scope.playerId,
         width: scope.width,
         height: scope.height
       };
@@ -34,7 +34,7 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
         // The element id of the Flash embed
         scope.atts = { 
           id: "ytPlayer-"+scope.playerId, 
-          data: "https://www.youtube.com/v/" + scope.code + "?version=3&enablejsapi=1&playerapiid="+scope.playerId,
+          data: "https://www.youtube.com/v/" + scope.code + "?version=3&controls=0&enablejsapi=1&playerapiid="+scope.playerId,
           width: scope.width,
           height: scope.height
         };

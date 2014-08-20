@@ -6,7 +6,7 @@ angular.module('youScriberApp').directive('videoPanel', function($location) {
       videoId: '=videoId'
     },
     replace: true,
-    templateUrl: 'scripts/directives/video-panel/panel.html',
+    templateUrl: 'views/directives/panel.html',
     link: function (scope, iElement, iAttrs, controller) {
       scope.nav = function(video) {
         // console.log(video);
