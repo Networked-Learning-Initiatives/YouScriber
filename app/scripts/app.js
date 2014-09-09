@@ -22,12 +22,27 @@ angular.module('youScriberApp', [
         controller: 'VideoCtrl'
       })
       .when('/register', {
-        templateUrl: 'views/register.html',
-        controller: 'RegistrationCtrl'
-      })
-      .when('/register/:org', {
         templateUrl: 'views/registration.html',
         controller: 'RegistrationCtrl'
+      })
+      .when('/login', {
+        templateUrl: 'views/login.html',
+        controller: 'LoginCtrl'
+      })
+      // .when('/login', {
+      //   redirectTo: '/login/student'
+      // })
+      .when('/register/org', {
+        templateUrl: 'views/org-registration.html',
+        controller: 'OrganizationRegistrationCtrl'
+      })
+      // .when('/register/:org', {
+      //   templateUrl: 'views/registration.html',
+      //   controller: 'RegistrationCtrl'
+      // })
+      .when('/manage', {
+        templateUrl: 'views/manage.html',
+        controller: 'ManageCtrl'
       })
       .otherwise({
         redirectTo: '/dash'

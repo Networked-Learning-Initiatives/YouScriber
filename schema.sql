@@ -1,4 +1,4 @@
-create database youscriber;
+--create database youscriber;
 
 create table ysuser (
   id SERIAL,
@@ -35,6 +35,7 @@ create table video_thumbnail (
 create table organization (
   id SERIAL, 
   title varchar,
+  description text,
   constraint org_pkey primary key (id)
 );
 
@@ -49,11 +50,13 @@ create table group_member (
   id SERIAL,
   ysuser integer references ysuser(id),
   ysgroup integer references ysgroup(id),
+  pending boolean,
   constraint gmember_pkey primary key (id)
 );
 
 create table organization_member (
   id SERIAL,
+  pending boolean,
   ysuser integer references ysuser(id),
   organization integer references organization(id),
   constraint omember_pkey primary key (id)
@@ -79,4 +82,12 @@ create table group_privilege (
   permission integer references permission(id),
   video integer references video (id),
   constraint gpriv_pkey primary key (id)
+);
+
+create table organization_privilege (
+  id SERIAL,
+  organization integer references organization(id),
+  permission integer references permission(id),
+  video integer references video (id),
+  constraint opriv_pkey primary key (id)
 );

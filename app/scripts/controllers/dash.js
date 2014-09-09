@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('youScriberApp').controller('DashCtrl', function ($scope, $firebase, $location) {
+angular.module('youScriberApp').controller('DashCtrl', function ($scope, $firebase, $location, User) {
   var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
 
   var dashScope = $scope;
+
+  $scope.userService = User;
   
   $scope.videos = $firebase(videosRef);
   
