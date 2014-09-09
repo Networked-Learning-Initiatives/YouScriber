@@ -2,16 +2,16 @@
 
 create table ysuser (
   id SERIAL,
-  name varchar,
-  pwhash varchar,
-  email varchar,
+  name varchar(255),
+  pwhash varchar(255),
+  email varchar(255),
   constraint user_pkey primary key (id)
 );
 
 create table video (
   id SERIAL,
-  title varchar,
-  ytid varchar,
+  title varchar(255),
+  ytid varchar(255),
   owner integer references ysuser (id),
   constraint video_pkey primary key (id)
 );
@@ -19,7 +19,7 @@ create table video (
 create table comment (
   id SERIAL,
   time real,
-  content varchar,
+  content varchar(255),
   author integer references ysuser(id),
   video_id integer references video(id),
   constraint comment_pkey primary key (id)
@@ -28,20 +28,20 @@ create table comment (
 create table video_thumbnail (
   id SERIAL,
   video_id integer references video(id),
-  url varchar,
+  url varchar(255),
   constraint thumbnail_pkey primary key (id)
 );
 
 create table organization (
   id SERIAL, 
-  title varchar,
+  title varchar(255),
   description text,
   constraint org_pkey primary key (id)
 );
 
 create table ysgroup (
   id SERIAL,
-  title varchar,
+  title varchar(255),
   owner integer references ysuser(id),
   constraint group_pkey primary key (id)
 );
@@ -64,7 +64,7 @@ create table organization_member (
 
 create table permission (
   id SERIAL,
-  name varchar,
+  name varchar(255),
   constraint permission_pkey primary key (id)
 );
 
