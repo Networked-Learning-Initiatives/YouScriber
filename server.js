@@ -1,11 +1,20 @@
 var express = require('express');
 var app = express();
-var pg = require('pg');  //Commented out until database implementation
+// var pg = require('pg');  //Commented out until database implementation
+var mysql = require('mysql');
 var http = require('http').Server(app);
 var bodyParser = require('body-parser')
 var async = require('async');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use( bodyParser.urlencoded({extended:true}) ); // to support URL-encoded bodies
+
+var connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'youscriber',
+    password: 'youscriber',
+    database: 'youscriber'
+});
+connection.connect();
 
 
 
@@ -45,27 +54,18 @@ app.use(express.static(__dirname + '/app'));
 var port = 3333;
 
 
-var conString = "postgres://youscriber:5432@localhost/youscriber";
-
-function executePGQueryParam (sql, params, success, failure) {
+function executeQuery (sql, params, success, failure) {
   console.log(sql, params);
-  pg.connect(conString, function (error, client, done){
-    if (error) {
-      return console.error('error fetching pg client from pool', error);
+  connection.query(sql, params, function (err, result) {
+    if(err) {
+      if (failure){
+        failure(err);
+      }
+      return console.error('error running query: ', sql, err);
     }
-
-    client.query(sql, params, function (err, result) {
-      if(err) {
-        if (failure){
-          failure(err);
-        }
-        return console.error('error running query: ', sql, err);
-      }
-      if (success) {
-        success(result);
-      }
-      done();
-    });
+    if (success) {
+      success(result);
+    }
   });
 }
 
@@ -78,21 +78,21 @@ function cbWrapper (callback) {
 function getGroups (id) {
   return function(cb) {
     var getGroupsQuery = 'select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where gm.ysuser=$1';
-    executePGQueryParam(getGroupsQuery, [id], cbWrapper(cb), cb);
+    executeQuery(getGroupsQuery, [id], cbWrapper(cb), cb);
   };
 }
 
 function getOrgs (id) {
   return function(cb) {
     var getOrgsQuery = 'select o.id, o.title from organization o join organization_member om on om.organization=o.id where om.ysuser=$1';
-    executePGQueryParam(getOrgsQuery, [id], cbWrapper(cb), cb);
+    executeQuery(getOrgsQuery, [id], cbWrapper(cb), cb);
   };
 }
 
 app.post('/api/user/login', function (req, res) {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
     var checkLogin = 'select id from ysuser where name=$1 and pwhash=$2';
-    executePGQueryParam(checkLogin, [req.body.user, req.body.pwHash], 
+    executeQuery(checkLogin, [req.body.user, req.body.pwHash], 
       function (loginResult){
         console.log('login success', loginResult);
         if (loginResult.rowCount == 0) {
@@ -123,13 +123,13 @@ app.post('/api/user/login', function (req, res) {
 app.post('/api/user', function (req, res) {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('email') && req.body.hasOwnProperty('pwHash')) {
     var checkUser = 'select id from ysuser where name=$1';
-    executePGQueryParam(checkUser, [req.body.user], 
+    executeQuery(checkUser, [req.body.user], 
       function (checkUserResult){
         //there's no user already using the requested username
         if (checkUserResult.rowCount < 1) {
           //add this user to the db
           var insertNewUser = "insert into ysuser (name,email,pwhash) values ($1,$2,$3) returning id";
-          executePGQueryParam(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
+          executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
             function (newUserSuccess) {
               console.log(newUserSuccess);
               res.status(201).json({id:newUserSuccess.rows[0].id});
@@ -156,7 +156,7 @@ app.post('/api/user', function (req, res) {
 // app.post('/api/user/login', function (req, res) {
 //   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
 //     var loginUser = 'select id from ysuser where name=$1 and pwhash=$2';
-//     executePGQueryParam(loginUser, [req.body.user, req.body.pwHash], 
+//     executeQuery(loginUser, [req.body.user, req.body.pwHash], 
 //       function (loginUserResult) {
 //         console.log('found user for login', loginUserResult);
 
@@ -176,13 +176,13 @@ app.post('/api/user', function (req, res) {
 app.post('/api/org', function (req, res) {
   if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('email') && req.body.hasOwnProperty('pwHash')) {
     var checkUser = 'select id from ysuser where name=$1';
-    executePGQueryParam(checkUser, [req.body.user], 
+    executeQuery(checkUser, [req.body.user], 
       function (checkUserResult){
         //there's no user already using the requested username
         if (checkUserResult.rowCount < 1) {
           //add this user to the db
           var insertNewUser = "insert into ysuser (name,email,pwhash) values ($1,$2,$3)";
-          executePGQueryParam(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
+          executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
             function (newUserSuccess) {
               res.status(201).json({id:newUserSuccess});
             },
