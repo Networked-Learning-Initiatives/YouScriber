@@ -6,10 +6,12 @@
     <div class="modal fade" id="new-video-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
+
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
             <h4 class="modal-title" id="myModalLabel">YouTube Video ID</h4>
           </div>
+
           <form class="form-horizontal" role="form" ng-submit="loadVideo()">
             <div class="modal-body">
               <p>
@@ -18,7 +20,9 @@
               <div class="form-group" ng-class="{'has-error': errorMessage.length>0}">
                 <label for="inputVideoId" class="col-sm-2 control-label">YouTube Video Id</label>
                 <div class="col-sm-10">
+                  
                   <input type="text" class="form-control" id="inputVideoId" placeholder="http://youtu.be/dQw4w9WgXcQ" ng-model="newVideoId">
+                 
                   <div class="media help-block" ng-show="errorMessage.length>0">
                     <a class="pull-left" href="#">
                       <img class="media-object" width="213" src="images/video-id-help.png" alt="Screenshot of getting the video id for a YouTube video">
@@ -32,11 +36,13 @@
                 </div>
               </div>
             </div>
+
             <div class="modal-footer">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
               <button type="submit" class="btn btn-primary">Annotate</button>
             </div>
           </form>
+
         </div>
       </div>
     </div>

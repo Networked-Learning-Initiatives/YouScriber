@@ -89,6 +89,31 @@ function getOrgs (id) {
   };
 }
 
+function getPublicVideos(callback, options){
+  if (!options) { //get all public videos
+
+    // store a db query in a variable
+    var publicVideoQuery = 'select video.*, count(comment.id) as comments from video left join comment on video.id=comment.video_id where video.id not in (select video from user_privilege union select video from group_privilege union select video from organization_privilege) group by video.id';
+
+    // execute the database query
+    executeQuery(publicVideoQuery, [], function(results) {
+      //get the number of comments for these videos
+      callback(results);
+
+    }, function(err){
+      callback(err);
+    });
+
+  } else {
+    if (options.hasOwnProperty('org')) {
+
+    }
+    else if (options.hasOwnProperty('group')) {
+
+    }
+  }
+}
+
 app.post('/api/user/login', function (req, res) {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
 
@@ -154,6 +179,29 @@ app.post('/api/user', function (req, res) {
     res.status(400).send('user, email, and pwHash fields required in post body to register');
   }
 });
+
+app.get('/api/videos', function (req, res) {
+  getPublicVideos(function(results) {
+    console.log(results);
+    res.status(200).json(results);
+  })
+});
+
+// app.get('/posts/:slug', function(req, res) {
+//   var post = posts[req.params.slug];
+
+app.get('/api/videos/org/:orgId', function (req, res) {
+
+});
+
+app.get('/api/videos/group/:gId', function (req, res) {
+
+});
+
+app.get('/api/videos/user/:uId', function (req, res) {
+
+});
+
 
 // app.post('/api/user/login', function (req, res) {
 //   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
