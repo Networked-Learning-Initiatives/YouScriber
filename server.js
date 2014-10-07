@@ -77,21 +77,23 @@ function cbWrapper (callback) {
 
 function getGroups (id) {
   return function(cb) {
-    var getGroupsQuery = 'select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where gm.ysuser=$1';
+    var getGroupsQuery = 'select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where gm.ysuser=?';
     executeQuery(getGroupsQuery, [id], cbWrapper(cb), cb);
   };
 }
 
 function getOrgs (id) {
   return function(cb) {
-    var getOrgsQuery = 'select o.id, o.title from organization o join organization_member om on om.organization=o.id where om.ysuser=$1';
+    var getOrgsQuery = 'select o.id, o.title from organization o join organization_member om on om.organization=o.id where om.ysuser=?';
     executeQuery(getOrgsQuery, [id], cbWrapper(cb), cb);
   };
 }
 
 app.post('/api/user/login', function (req, res) {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
-    var checkLogin = 'select id from ysuser where name=$1 and pwhash=$2';
+
+    var checkLogin = 'select id from ysuser where name=? and pwhash=?';
+
     executeQuery(checkLogin, [req.body.user, req.body.pwHash], 
       function (loginResult){
         console.log('login success', loginResult);
@@ -122,13 +124,13 @@ app.post('/api/user/login', function (req, res) {
 //registration route
 app.post('/api/user', function (req, res) {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('email') && req.body.hasOwnProperty('pwHash')) {
-    var checkUser = 'select id from ysuser where name=$1';
+    var checkUser = 'select id from ysuser where name=?';
     executeQuery(checkUser, [req.body.user], 
       function (checkUserResult){
         //there's no user already using the requested username
         if (checkUserResult.rowCount < 1) {
           //add this user to the db
-          var insertNewUser = "insert into ysuser (name,email,pwhash) values ($1,$2,$3) returning id";
+          var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?) returning id";
           executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
             function (newUserSuccess) {
               console.log(newUserSuccess);
@@ -155,7 +157,7 @@ app.post('/api/user', function (req, res) {
 
 // app.post('/api/user/login', function (req, res) {
 //   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
-//     var loginUser = 'select id from ysuser where name=$1 and pwhash=$2';
+//     var loginUser = 'select id from ysuser where name=? and pwhash=?';
 //     executeQuery(loginUser, [req.body.user, req.body.pwHash], 
 //       function (loginUserResult) {
 //         console.log('found user for login', loginUserResult);
@@ -175,13 +177,13 @@ app.post('/api/user', function (req, res) {
 
 app.post('/api/org', function (req, res) {
   if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('email') && req.body.hasOwnProperty('pwHash')) {
-    var checkUser = 'select id from ysuser where name=$1';
+    var checkUser = 'select id from ysuser where name=?';
     executeQuery(checkUser, [req.body.user], 
       function (checkUserResult){
         //there's no user already using the requested username
         if (checkUserResult.rowCount < 1) {
           //add this user to the db
-          var insertNewUser = "insert into ysuser (name,email,pwhash) values ($1,$2,$3)";
+          var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?)";
           executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
             function (newUserSuccess) {
               res.status(201).json({id:newUserSuccess});
