@@ -39,6 +39,7 @@
         </div>
       </div>
     </div>
+
     <div class="panel panel-primary video-panel new-video" ng-click="newVideo()">
       <div class="panel-heading">
         <h3 class="panel-title" title="Annotate a new video">Annotate a new video</h3>
@@ -48,8 +49,10 @@
       </div>
       <div class="panel-footer">&nbsp;</div>
     </div>
+    
     <video-panel ng-repeat="(videoId,video) in videos" model="video" video-id="videoId"></video-panel>
   </div>
+
   <div class="col-md-2" ng-show="userService.loggedIn()">
     <panel panel-title="Organizations">
       <ul class="list-group">
