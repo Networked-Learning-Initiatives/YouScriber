@@ -100,13 +100,13 @@ app.post('/api/user/login', function (req, res) {
         if (loginResult.rowCount == 0) {
           res.status(500).json({msg:'user or password incorrect'});
         }
-        async.parallel([getGroups(loginResult.rows[0].id), getOrgs(loginResult.rows[0].id)], function(error, results){
+        async.parallel([getGroups(loginResult[0].id), getOrgs(loginResult[0].id)], function(error, results){
           if (error) {
             res.status(500).json({msg:error});
           }
           else {
             console.log(results[0], results[1]);
-            res.status(200).json({id:loginResult.rows[0].id, groups:results[0].rows, orgs:results[1].rows});
+            res.status(200).json({id:loginResult[0].id, groups:results[0], orgs:results[1]});
           }          
         });
       },
