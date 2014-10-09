@@ -1,19 +1,12 @@
 'use strict';
 
-angular.module('youScriberApp').controller('DashCtrl', function ($scope, $firebase, $location, User, $http) {
+angular.module('youScriberApp').controller('DashCtrl', function ($scope, $firebase, $location, User, Videos) {
   var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
 
   var dashScope = $scope;
 
   $scope.userService = User;
-  
-  // $scope.videos = $firebase(videosRef);
-
-  $http.get('/api/videos').success(function(results){
-    console.log(results);
-    dashScope.videos = results;
-  });
-
+  $scope.videosService = Videos;
   
   $scope.newVideo = function() {
     $('#new-video-modal').on('shown.bs.modal', function (e) {

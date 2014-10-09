@@ -89,29 +89,73 @@ function getOrgs (id) {
   };
 }
 
-function getPublicVideos(callback, options){
-  if (!options) { //get all public videos
+function getPublicVideos(callback, user){
+  
+  // we need to treat the union of the following several queries as a "derived table".
+  // the prefix and suffix here will make that happen, and group the results as we need them.
+  var queryPrefix = 'select * from ( ';
+  var querySuffix = ' ) as videos group by videos.id';
+  
+  // this query finds out which videos have no permissions set for them (making them public)
+  // TODO: what would make a video private?
+  var publicVideoQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id where video.id not in (select video from user_privilege union select video from group_privilege union select video from organization_privilege) group by video.id';
 
-    // store a db query in a variable
-    var publicVideoQuery = 'select video.*, count(comment.id) as comments from video left join comment on video.id=comment.video_id where video.id not in (select video from user_privilege union select video from group_privilege union select video from organization_privilege) group by video.id';
+  // this query finds out which videos the current user has permissions for
+  // TODO: maybe limit this to "read" permission?
+  var videosForUserQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join user_privilege on user_privilege.video=video.id where user_privilege.ysuser=? group by video.id';
 
-    // execute the database query
-    executeQuery(publicVideoQuery, [], function(results) {
-      //get the number of comments for these videos
-      callback(results);
-
-    }, function(err){
-      callback(err);
-    });
-
-  } else {
-    if (options.hasOwnProperty('org')) {
-
-    }
-    else if (options.hasOwnProperty('group')) {
-
-    }
+  // default the usserId to null, in case we don't currently know who the user is.
+  var userId = 'null';
+  if (user && user.hasOwnProperty('id')) {
+    userId = user.id;
   }
+
+  // here we start building the composite query
+  var unionQuery = queryPrefix + publicVideoQuery + ' union distinct ' + videosForUserQuery;
+  var unionParams = [];
+  unionParams.push(userId);
+
+  // this query finds out which videos the current user has permissions for through the current user's group memberships
+  // TODO: maybe limit this to "read" permission?
+  var videosForGroupQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join group_privilege on group_privilege.video=video.id where group_privilege.ysgroup in (?) group by video.id';
+  var groupId = [];
+
+  if (user != null && user.hasOwnProperty('groups')) {
+
+    // if the current user has groups, accumulate their ids so they can be used for this query
+    for (var i=0; i<user.groups.length; i++) {
+      groupId.push(user.groups[i].id);
+    }
+    unionParams.push(groupId);
+
+    // add this query to the composite query started above
+    unionQuery = unionQuery + ' union ' + videosForGroupQuery;
+  }
+
+  // this query finds out which videos the current user has permissions for through the current user's org memberships
+  // TODO: maybe limit this to "read" permission?
+  var videosForOrgQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join organization_privilege on organization_privilege.video=video.id where organization_privilege.organization in (?) group by video.id';
+  var org = [];
+
+  if (user != null && user.hasOwnProperty('orgs')) {
+
+    // if the current user has groups, accumulate their ids so they can be used for this query
+    for (var i=0; i<user.orgs.length; i++) {
+      org.push(user.orgs[i].id);
+    }
+    unionParams.push(org);
+
+    // add this query to the composite query started above
+    unionQuery = unionQuery + ' union ' + videosForOrgQuery;
+  }
+
+  // add the suffix on to the composite query
+  unionQuery = unionQuery + querySuffix;
+
+  // run the query and give the callback the results
+  executeQuery(unionQuery, unionParams, function(results){
+    callback(results);
+  });
 }
 
 app.post('/api/user/login', function (req, res) {
@@ -181,26 +225,68 @@ app.post('/api/user', function (req, res) {
 });
 
 app.get('/api/videos', function (req, res) {
-  getPublicVideos(function(results) {
-    console.log(results);
-    res.status(200).json(results);
-  })
+  var user = req.query.user;
+  
+  if (req.query.hasOwnProperty('user')) {
+    getPublicVideos(function(results) {
+      console.log(results);
+      res.status(200).json(results);
+    }, JSON.parse(user));
+  }
+
+  else {
+    getPublicVideos(function(results) {
+      console.log('callback for else');
+      console.log(results);
+      res.status(200).json(results);
+    });
+  }
+});
+
+app.get('/api/videos/:vid', function(req, res) {
+  var videoDetailsQuery = 'select video.* from video where video.id=?';
+  var videoCommentsQuery = 'select comment.* from comment where comment.video_id=?';
+
+  async.parallel([function(cb) {
+    executeQuery(videoDetailsQuery, [req.query.vid], cb);
+  }, function(cb) {
+    executeQuery(videoCommentsQuery, [req.query.vid], cb);
+  }], function(error, results) {
+    if (error) {
+      res.status(500).json({msg:error});
+    }
+    else {
+      // console.log(results[0], results[1]);
+      var video = results[0];
+      video.comments = results[1];
+      res.status(200).json({video:video});
+    }          
+  });
 });
 
 // app.get('/posts/:slug', function(req, res) {
 //   var post = posts[req.params.slug];
 
-app.get('/api/videos/org/:orgId', function (req, res) {
+// app.get('/api/videos/org/:orgId', function (req, res) {
+//   getPublicVideos(function(results) {
+//     console.log(results);
+//     res.status(200).json(results);
+//   }, {org:orgId});
+// });
 
-});
+// app.get('/api/videos/group/:gId', function (req, res) {
+//   getPublicVideos(function(results) {
+//     console.log(results);
+//     res.status(200).json(results);
+//   }, {group:gId});
+// });
 
-app.get('/api/videos/group/:gId', function (req, res) {
-
-});
-
-app.get('/api/videos/user/:uId', function (req, res) {
-
-});
+// app.get('/api/videos/user/:uId', function (req, res) {
+//   getPublicVideos(function(results) {
+//     console.log(results);
+//     res.status(200).json(results);
+//   }, {user:uId});
+// });
 
 
 // app.post('/api/user/login', function (req, res) {
