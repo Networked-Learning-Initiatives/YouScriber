@@ -19,6 +19,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       .success(function(data) {
         console.log('logged in!', data);
         userService.user = {name:user, id:data.id, orgs:data.orgs, groups:data.groups};
+        $rootScope.$emit('user-logged-in');
         successCallback(data);
       })
       .error(function(error) {
