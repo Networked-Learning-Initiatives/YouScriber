@@ -9,7 +9,6 @@ angular.module('youScriberApp').directive('videoPanel', function($location) {
     templateUrl: 'views/directives/video-panel.html',
     link: function (scope, iElement, iAttrs, controller) {
       scope.nav = function(video) {
-        // console.log(video);
         $location.path('video/'+video);
       }; 
     }
