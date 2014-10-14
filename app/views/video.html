@@ -1,13 +1,14 @@
 <div class="row">
   <div class="col-md-12 body">
-    <h1 class="video-title">{{videoMetadata.entry.title.$t}}</h1>
+    <h1 class="video-title">{{videosService.currentVideo.title}}</h1>
     <!-- <span>Change Video: </span><a href="#" editable-text="videoIdInProgress">{{ videoIdInProgress || "YouTube video ID" }}</a> -->
   </div>
 </div>
 <div class="row">
   <div class="col-md-6 left-col">
-    <ys-youtube video-id="videoId" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime" metadata="videoMetadata"></ys-youtube>
-    <timeline comments="comments" duration="videoMetadata.entry['media$group']['yt$duration'].seconds" width="600" time="videoTime"></timeline>
+    <!-- <ys-youtube video-id="videoId" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime" metadata="videoMetadata"></ys-youtube> -->
+    <ys-youtube video-id="videoId" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime"></ys-youtube>
+    <timeline comments="comments" duration="videosService.currentVideo.duration" width="600" time="videoTime"></timeline>
     <form class="form-inline" role="form">
       <div class="form-group">
         <label class="sr-only" for="comment">Enter a new comment here</label>
@@ -26,6 +27,6 @@
   </div>
 </div>
 <div hidden class="row">
-  {{videoMetadata}}
+  {{videosService.currentVideo}}
 
 </div>

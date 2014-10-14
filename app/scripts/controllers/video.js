@@ -13,10 +13,10 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope, Videos) {
   $scope.videoId = $routeParams.videoId;
   $scope.videoIdInProgress = $scope.videoId;
-  $scope.videoMetadata = {};
+  // $scope.videoMetadata = {};
   var videoScope = $scope;
 
   $scope.Math = window.Math;
@@ -28,24 +28,27 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   
   if ($routeParams.hasOwnProperty('videoId')) {
     $scope.videoId = $routeParams.videoId;
+    Videos.getVideo($scope.videoId);
   }
 
-  var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
-  $scope.videos = $firebase(videosRef);
+  $scope.videosService = Videos;
+
+  // var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
+  // $scope.videos = $firebase(videosRef);
 
   $scope.comments = {};
   
-  $scope.videos.$on("loaded", function(value) {
-    if (value &&value.hasOwnProperty($scope.videoId)) {
-      $scope.comments = value[$scope.videoId];
-    }
-  });
+  // $scope.videos.$on("loaded", function(value) {
+  //   if (value &&value.hasOwnProperty($scope.videoId)) {
+  //     $scope.comments = value[$scope.videoId];
+  //   }
+  // });
 
-  $scope.$watch('videos', function(newValue, oldValue){
-    if (newValue[$scope.videoId] && newValue[$scope.videoId].hasOwnProperty('comments')) {
-      $scope.comments = newValue[$scope.videoId].comments;
-    }
-  }, true);
+  // $scope.$watch('videos', function(newValue, oldValue){
+  //   if (newValue[$scope.videoId] && newValue[$scope.videoId].hasOwnProperty('comments')) {
+  //     $scope.comments = newValue[$scope.videoId].comments;
+  //   }
+  // }, true);
 
   $scope.playerId = Math.floor(Math.random()*10000000);
   $scope.newComment = '';

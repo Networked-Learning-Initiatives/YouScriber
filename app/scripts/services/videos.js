@@ -27,8 +27,14 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   });
 
   this.getVideo = function(id) {
-    $http({method: 'GET', url: '/api/videos/'+id}).success(function(results) {
+    var params = {};
+    if (User.loggedIn()) {
+      params.user = User.user;
+    }
+    console.log(params);
+    $http({method: 'GET', url: '/api/videos/'+id, params:params}).success(function(results) {
       // consider adding this info instead to the videoService.videos
+      console.log(results);
       videosService.currentVideo = results;
     });
   };
