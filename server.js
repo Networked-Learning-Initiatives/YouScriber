@@ -8,6 +8,9 @@ var async = require('async');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use( bodyParser.urlencoded({extended:true}) ); // to support URL-encoded bodies
 
+var request = require('request');
+
+
 var connection = mysql.createConnection({
     host: 'localhost',
     user: 'youscriber',
@@ -243,23 +246,78 @@ app.get('/api/videos', function (req, res) {
   }
 });
 
+function addVideo (response, userId, httpResponse) {
+  // console.log(response.body.entry);
+
+  var entry = JSON.parse(response.body).entry;
+  // console.log(entry);
+  var title = entry.title.$t;
+  var duration = entry.media$group.yt$duration.seconds;
+  var ytid = entry.media$group.yt$videoid.$t;
+  var thumb = entry.media$group.media$thumbnail[1].url;
+  var video = {
+    title: title,
+    ytid: ytid,
+    owner: userId,
+    thumbnail: thumb,
+    duration: duration,
+    comments: []
+  };
+
+  // console.log('title, duration, thumb', title, duration, thumb);
+
+  var insertNewVideoQuery = 'insert into video (title, ytid, owner, thumbnail, duration) values (?, ?, ?, ?, ?)';
+  executeQuery(insertNewVideoQuery, [title, ytid, userId, thumb, duration], function(results){
+    console.log(results);
+    video.id = results.insertId;
+    httpResponse.status(200).json(video);
+  });
+}
+
 app.get('/api/videos/:vid', function(req, res) {
+
+  console.log('/api/videos/:vid', req.params.vid);
+  console.log(req.params);
+  console.log(req.query);
+  var user = JSON.parse(req.query.user);
+  console.log(user);
+
+  // TODO: make these queries respect permissions
   var videoDetailsQuery = 'select video.* from video where video.id=?';
   var videoCommentsQuery = 'select comment.* from comment where comment.video_id=?';
 
   async.parallel([function(cb) {
-    executeQuery(videoDetailsQuery, [req.query.vid], cb);
+    executeQuery(videoDetailsQuery, [req.params.vid], cb);
   }, function(cb) {
-    executeQuery(videoCommentsQuery, [req.query.vid], cb);
+    executeQuery(videoCommentsQuery, [req.params.vid], cb);
   }], function(error, results) {
-    if (error) {
+    console.log('parallel callback', error, results);
+    if (error && (!error.hasOwnProperty('length')||error.length>0)) {
+      console.log('error case');
       res.status(500).json({msg:error});
     }
     else {
+      console.log('videos/vid else');
+      if (results && (!results.hasOwnProperty('length')||(results.length>0 && results[0] && typeof results[0] != 'undefined'))) {
+        console.log('results', results);
+        var video = results[0];
+        video.comments = results[1];
+        res.status(200).json({video:video});
+      }
+      else {// (!results || (results.hasOwnProperty('length') && results.length == 0)) {
+        // video is not in our database, so add it.
+        console.log('no video');
+
+        request('http://gdata.youtube.com/feeds/api/videos/'+req.params.vid+'?v=2&alt=json', function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            // console.log(response); // Print the google web page.
+
+            addVideo(response, user.id, res);
+          }
+        });
+      }
       // console.log(results[0], results[1]);
-      var video = results[0];
-      video.comments = results[1];
-      res.status(200).json({video:video});
+      
     }          
   });
 });
