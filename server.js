@@ -239,8 +239,8 @@ app.get('/api/videos', function (req, res) {
 
   else {
     getPublicVideos(function(results) {
-      console.log('callback for else');
-      console.log(results);
+      // console.log('callback for else');
+      // console.log(results);
       res.status(200).json(results);
     });
   }
