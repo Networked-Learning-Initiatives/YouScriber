@@ -48,7 +48,7 @@
     </div>
     <!-- END modal -->
 
-    <div class="panel panel-primary video-panel new-video" ng-click="newVideo()">
+    <div class="panel panel-primary video-panel new-video" ng-click="newVideo()" ng-show="userService.loggedIn()">
       <div class="panel-heading">
         <h3 class="panel-title" title="Annotate a new video">Annotate a new video</h3>
       </div>
@@ -58,7 +58,7 @@
       <div class="panel-footer">&nbsp;</div>
     </div>
     
-    <video-panel ng-repeat="(videoId,video) in videos" model="video" video-id="videoId"></video-panel>
+    <video-panel ng-repeat="video in videosService.videos" model="video" video-id="video.ytid"></video-panel>
   </div>
 
   <div class="col-md-2" ng-show="userService.loggedIn()">
