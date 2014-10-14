@@ -1,8 +1,7 @@
 'use strict';
 
 angular.module('youScriberApp').controller('DashCtrl', function ($scope, $firebase, $location, User, Videos) {
-  var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
-
+  var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos"); //need to get rid of firebase stuff
   var dashScope = $scope;
 
   $scope.userService = User;
@@ -31,7 +30,9 @@ angular.module('youScriberApp').controller('DashCtrl', function ($scope, $fireba
     else {
       $('#new-video-modal').modal('hide');
       $('#new-video-modal').on('hidden.bs.modal', function (e) {
-        $location.path('/video/'+dashScope.newVideoId);
+        console.log('go to the new video');
+        // dashScope.$apply($location.path('/video/'+dashScope.newVideoId));
+        dashScope.videosService.newVideo(dashScope.newVideoId);
       });
     }
   };

@@ -19,6 +19,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       .success(function(data) {
         console.log('logged in!', data);
         userService.user = {name:user, id:data.id, orgs:data.orgs, groups:data.groups};
+        $cookies['youScriber-user'] = JSON.stringify(userService.user);
         $rootScope.$emit('user-logged-in');
         successCallback(data);
       })
@@ -32,11 +33,17 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
     $http.post('/api/user/logout', {uid: this.user.id})
       .success(function(data) {
         console.log('logged out!', data);
-        userService.user = {};
-        successCallback(data);
+        delete $cookies['youScriber-user'];
+        userService.user = null;
+
+        if (successCallback) {
+          successCallback(data);
+        }
       })
       .error(function(error) {
-        errorCallback(error);
+        if (errorCallback) {
+          errorCallback(error);
+        }
       });
   };
 

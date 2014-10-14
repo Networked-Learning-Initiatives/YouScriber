@@ -66,7 +66,7 @@ function executeQuery (sql, params, success, failure) {
       }
       return console.error('error running query: ', sql, err);
     }
-    if (success) {
+    else if (success) {
       success(result);
     }
   });
@@ -192,6 +192,11 @@ app.post('/api/user/login', function (req, res) {
   }
 });
 
+app.post('/api/user/logout', function (req, res) {
+  // TODO: add logout logic
+  res.status(200).send();
+});
+
 
 //registration route
 app.post('/api/user', function (req, res) {
@@ -274,47 +279,98 @@ function addVideo (response, userId, httpResponse) {
   });
 }
 
+app.get('/api/video/new', function(req, res) {
+  // video is not in our database, so add it.
+  if (!req.query.hasOwnProperty('user')) {
+    var msg = 'have to be logged in to add a new video';
+    console.log(msg);
+    res.status(500).json({msg:msg});
+    return;
+  }
+
+  if (!req.query.hasOwnProperty('ytid')) {
+    var msg = 'no ytid received for new video.';
+    console.log(msg);
+    res.status(500).json({msg:msg});
+    return;
+  }
+
+  console.log('new video');
+  var user = JSON.parse(req.query.user);
+  console.log(user);
+
+  request('http://gdata.youtube.com/feeds/api/videos/'+req.query.ytid+'?v=2&alt=json', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      // console.log(response); // Print the google web page.
+
+      addVideo(response, user.id, res);
+    }
+  });
+});
+
 app.get('/api/videos/:vid', function(req, res) {
 
   console.log('/api/videos/:vid', req.params.vid);
   console.log(req.params);
   console.log(req.query);
-  var user = JSON.parse(req.query.user);
-  console.log(user);
 
   // TODO: make these queries respect permissions
   var videoDetailsQuery = 'select video.* from video where video.id=?';
   var videoCommentsQuery = 'select comment.* from comment where comment.video_id=?';
 
+  function makeSuccessCB(cb) {
+    return function (r) {
+      cb(null, r);
+    };
+  }
+
   async.parallel([function(cb) {
-    executeQuery(videoDetailsQuery, [req.params.vid], cb);
+
+    executeQuery(videoDetailsQuery, [req.params.vid], makeSuccessCB(cb), cb);
+
   }, function(cb) {
-    executeQuery(videoCommentsQuery, [req.params.vid], cb);
+
+    executeQuery(videoCommentsQuery, [req.params.vid], makeSuccessCB(cb), cb);
+
   }], function(error, results) {
+
     console.log('parallel callback', error, results);
     if (error && (!error.hasOwnProperty('length')||error.length>0)) {
-      console.log('error case');
+      console.log('error case', error);
       res.status(500).json({msg:error});
     }
     else {
       console.log('videos/vid else');
       if (results && (!results.hasOwnProperty('length')||(results.length>0 && results[0] && typeof results[0] != 'undefined'))) {
         console.log('results', results);
-        var video = results[0];
+        var video = results[0][0];
         video.comments = results[1];
+        console.log('video to be sent to client:');
+        console.log(video);
         res.status(200).json({video:video});
       }
-      else {// (!results || (results.hasOwnProperty('length') && results.length == 0)) {
-        // video is not in our database, so add it.
-        console.log('no video');
+      else {
+        // this mut be an error bc i moved it to a different route
 
-        request('http://gdata.youtube.com/feeds/api/videos/'+req.params.vid+'?v=2&alt=json', function (error, response, body) {
-          if (!error && response.statusCode == 200) {
-            // console.log(response); // Print the google web page.
 
-            addVideo(response, user.id, res);
-          }
-        });
+        // (!results || (results.hasOwnProperty('length') && results.length == 0)) {
+        // // video is not in our database, so add it.
+        // if (!req.query.hasOwnProperty('user')) {
+        //   console.log('have to be logged in to add a new video');
+        //   res.status(500).json({msg:'have to be logged in to add a new video'});
+        //   return;
+        // }
+        // console.log('no video');
+        // var user = JSON.parse(req.query.user);
+        // console.log(user);
+
+        // request('http://gdata.youtube.com/feeds/api/videos/'+req.params.vid+'?v=2&alt=json', function (error, response, body) {
+        //   if (!error && response.statusCode == 200) {
+        //     // console.log(response); // Print the google web page.
+
+        //     addVideo(response, user.id, res);
+        //   }
+        // });
       }
       // console.log(results[0], results[1]);
       

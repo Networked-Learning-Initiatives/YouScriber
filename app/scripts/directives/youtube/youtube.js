@@ -27,7 +27,13 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
       scope.videoMetadata = Videos.get({videoid:scope.code});
       
       scope.$watch('code', function (newVal) {
-        $interval.cancel(scope.timer);
+        console.log('video code change noticed in yt directive', newVal);
+        if (scope.hasOwnProperty('timer')) {
+          $interval.cancel(scope.timer);
+        }
+        if (typeof newVal === "undefined") {
+          return;
+        }
         angular.element('#video-container').append(angular.element('<div id="swf-container"></div>'));
         // Lets Flash from another domain call JavaScript
         scope.params = { allowScriptAccess: "always" };

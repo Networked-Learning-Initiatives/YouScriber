@@ -14,7 +14,8 @@ String.prototype.toHHMMSS = function () {
 }
 
 angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope, Videos) {
-  $scope.videoId = $routeParams.videoId;
+  $scope.videoId = $routeParams.videoId; //this is the video's id in OUR database
+  // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
   // $scope.videoMetadata = {};
   var videoScope = $scope;
@@ -27,11 +28,13 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   };
   
   if ($routeParams.hasOwnProperty('videoId')) {
+    console.log('found video id:', $routeParams.videoId);
     $scope.videoId = $routeParams.videoId;
     Videos.getVideo($scope.videoId);
   }
 
   $scope.videosService = Videos;
+  $scope.videoYTId = Videos.currentVideo.ytid;
 
   // var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
   // $scope.videos = $firebase(videosRef);
@@ -123,6 +126,10 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   };
 
   $scope.videoTime = 0;
+
+  $scope.$on("$destroy", function() {
+    //TODO: cancel timer(s) created by yt directive!
+  });
 
 }).filter('timefilter', function() {
   return function(input) {

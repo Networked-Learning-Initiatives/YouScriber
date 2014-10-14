@@ -1,5 +1,5 @@
 'use strict';
-angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $q, User) {
+angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $q, User, $location) {
 
   var videosService = this;
 
@@ -26,16 +26,38 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     videosService.getPublicVideos(User.user);
   });
 
+  this.newVideo = function(ytid) {
+    var params = {};
+    if (User.loggedIn()) {
+      params.user = User.user;
+    } else {
+      console.log('got logged out!');
+    }
+    params.ytid = ytid;
+    $http({method: 'GET', url: '/api/video/new', params:params}).success(function(results) {
+      // consider adding this info instead to the videoService.videos
+      console.log(results);
+      videosService.currentVideo = results;
+      // $rootScope.$apply(function(){
+        $location.path('/video/'+videosService.currentVideo.id);
+      // });
+    });
+  };
+
   this.getVideo = function(id) {
     var params = {};
     if (User.loggedIn()) {
       params.user = User.user;
+    } else {
+      console.log('got logged out!');
     }
     console.log(params);
     $http({method: 'GET', url: '/api/videos/'+id, params:params}).success(function(results) {
       // consider adding this info instead to the videoService.videos
-      console.log(results);
-      videosService.currentVideo = results;
+      // console.log(results.video[0]);
+      videosService.currentVideo = results.video;
+      // console.log(videosService.currentVideo.ytid);
+      console.log(videosService.currentVideo);
     });
   };
 
