@@ -6,8 +6,8 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
       width: '=w',
       height: '=h',
       playerId: '=playerId',
-      time: '=',
-      videoMetadata: '=metadata'
+      time: '='
+      // videoMetadata: '=metadata'
     },
     replace: true,
     templateUrl: 'views/directives/youtube.html',
