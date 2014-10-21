@@ -48,6 +48,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
   };
 
   this.registerOrg = function (title, description, successCallback, errorCallback) {
+    console.log('this.registerOrg::this.user:', this.user);
     $http.post('/api/org', {title: title, description:description, user:this.user})
       .success(function(data) {
         console.log(data);

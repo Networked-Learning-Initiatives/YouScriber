@@ -20,6 +20,8 @@ angular.module('youScriberApp').controller('OrganizationRegistrationCtrl', funct
     User.registerOrg($scope.title, $scope.description, 
       function(data) {
         console.log('registered new org!');
+        User.user.orgs.push(data);
+        console.log(User.user);
         $location.path('/org/');
       }, 
       function(error) {

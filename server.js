@@ -400,30 +400,9 @@ app.get('/api/videos/:vid', function(req, res) {
         res.status(200).json({video:video});
       }
       else {
-        // this mut be an error bc i moved it to a different route
-
-
-        // (!results || (results.hasOwnProperty('length') && results.length == 0)) {
-        // // video is not in our database, so add it.
-        // if (!req.query.hasOwnProperty('user')) {
-        //   console.log('have to be logged in to add a new video');
-        //   res.status(500).json({msg:'have to be logged in to add a new video'});
-        //   return;
-        // }
-        // console.log('no video');
-        // var user = JSON.parse(req.query.user);
-        // console.log(user);
-
-        // request('http://gdata.youtube.com/feeds/api/videos/'+req.params.vid+'?v=2&alt=json', function (error, response, body) {
-        //   if (!error && response.statusCode == 200) {
-        //     // console.log(response); // Print the google web page.
-
-        //     addVideo(response, user.id, res);
-        //   }
-        // });
-      }
-      // console.log(results[0], results[1]);
-      
+        console.log('SHOULD NOT HAVE GOTTEN HERE!')
+        res.status(500).json({msg:'SHOULD NOT HAVE GOTTEN HERE!'});
+      }      
     }          
   });
 });
@@ -453,55 +432,34 @@ app.get('/api/videos/:vid', function(req, res) {
 // });
 
 
-// app.post('/api/user/login', function (req, res) {
-//   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
-//     var loginUser = 'select id from ysuser where name=? and pwhash=?';
-//     executeQuery(loginUser, [req.body.user, req.body.pwHash], 
-//       function (loginUserResult) {
-//         console.log('found user for login', loginUserResult);
-
-//         res.status(200).json({});
-//       },
-//       function (loginUserError) {
-//         console.log('error in login', loginUserError);
-
-//       }
-//     );
-//   }
-//   else {
-//     res.status(400).send('login failed');
-//   }
-// });
-
 app.post('/api/org', function (req, res) {
-  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('email') && req.body.hasOwnProperty('pwHash')) {
-    var checkUser = 'select id from ysuser where name=?';
-    executeQuery(checkUser, [req.body.user], 
-      function (checkUserResult){
-        //there's no user already using the requested username
-        if (checkUserResult.rowCount < 1) {
-          //add this user to the db
-          var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?)";
-          executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
-            function (newUserSuccess) {
-              res.status(201).json({id:newUserSuccess});
-            },
-            function (newUserError) {
-              res.status(500).json({msg:newUserError});
-            });
-        }
-        else {
-          res.status(500).json({msg:'username already exists'});
-        }
-        // res.json(200, {id:checkUserResult});
-      },
-      function (checkUserError){
-        console.log('error in checkUser', checkUserError);
-        res.status(500).json({msg:'error in checkUser', error: checkUserError});
+
+  // check if we have the title and description and a user to be the owner
+
+  if (req.body.hasOwnProperty('title')) {
+    console.log('we found the title', req.body.title);
+  }
+
+  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
+    // TODO: consider making description optional
+    var addOrganizationQuery = "insert into organization (title, description, owner) values (?,?,?)";
+    
+    executeQuery(addOrganizationQuery, [req.body.title, req.body.description, req.body.user.id], function(result) {
+      //called for success
+      console.log(result);
+      res.status(201).json({
+        id:result.insertId,
+        title: req.body.title
       });
+
+    }, function (err) {
+      // called for error
+      res.status(400).send('error creating organization: '+err);
+    });
   }
   else {
-    res.status(400).send('user, email, and pwHash fields required in post body to register');
+    var errorMessage = 'title, description, and user are all required to create and organization';
+    res.status(400).send(errorMessage);
   }
 });
 

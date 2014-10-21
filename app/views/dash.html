@@ -64,6 +64,9 @@
   <div class="col-md-2" ng-show="userService.loggedIn()">
     <panel panel-title="Organizations">
       <ul class="list-group">
+        <li class="list-group-item">
+          <a href="#/register/org"><i class="fa fa-plus"></i> Create New</a>
+        </li>
         <li class="list-group-item" ng-repeat="org in userService.user.orgs">{{org.title}}</li>
       </ul>
     </panel>
