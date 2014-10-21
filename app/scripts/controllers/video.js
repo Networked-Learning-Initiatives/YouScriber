@@ -13,12 +13,14 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope, Videos) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope, Videos, User) {
   $scope.videoId = $routeParams.videoId; //this is the video's id in OUR database
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
   // $scope.videoMetadata = {};
   var videoScope = $scope;
+
+  $scope.userService = User;
 
   $scope.Math = window.Math;
 
@@ -73,35 +75,37 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   }
 
   $scope.post = function() {
-    var timecode = $scope.player.getCurrentTime().toString().replace(/\./g,'-');
+    // var timecode = $scope.player.getCurrentTime().toString().replace(/\./g,'-');
 
     var theNewComment = {
       time: $scope.player.getCurrentTime(),
       comment: $scope.newComment
     };
 
-    if (!$scope.videos.hasOwnProperty($scope.videoId)) {
-      var tmp = {};
-      tmp[$scope.videoId] = {
-        comments:[theNewComment],
-        title: $scope.videoMetadata.entry.title.$t,
-        thumbnails: $scope.thumbnails()
-      };
-      $scope.videos.$update(tmp);
-    } else {
-      if (!$scope.videos[$scope.videoId].hasOwnProperty('title')) {
-        $scope.videos[$scope.videoId].title = $scope.videoMetadata.entry.title.$t;
-        $scope.videos[$scope.videoId].thumbnails = $scope.thumbnails();
-      }
+    // if (!$scope.videos.hasOwnProperty($scope.videoId)) {
+    //   var tmp = {};
+    //   tmp[$scope.videoId] = {
+    //     comments:[theNewComment],
+    //     title: $scope.videoMetadata.entry.title.$t,
+    //     thumbnails: $scope.thumbnails()
+    //   };
+    //   $scope.videos.$update(tmp);
+    // } else {
+    //   if (!$scope.videos[$scope.videoId].hasOwnProperty('title')) {
+    //     $scope.videos[$scope.videoId].title = $scope.videoMetadata.entry.title.$t;
+    //     $scope.videos[$scope.videoId].thumbnails = $scope.thumbnails();
+    //   }
 
-      if ($scope.videos[$scope.videoId].hasOwnProperty('comments')) {
-          $scope.videos[$scope.videoId].comments.push(theNewComment);
-          $scope.videos.$save($scope.videoId);
-      } else {
-        $scope.videos[$scope.videoId].comments = [theNewComment];
-        $scope.videos.$save($scope.videoId);
-      }
-    }
+    //   if ($scope.videos[$scope.videoId].hasOwnProperty('comments')) {
+    //       $scope.videos[$scope.videoId].comments.push(theNewComment);
+    //       $scope.videos.$save($scope.videoId);
+    //   } else {
+    //     $scope.videos[$scope.videoId].comments = [theNewComment];
+    //     $scope.videos.$save($scope.videoId);
+    //   }
+    // }
+
+    Videos.addComment(theNewComment);
 
     $scope.newComment = '';
     $scope.player.playVideo();

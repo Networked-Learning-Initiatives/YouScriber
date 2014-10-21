@@ -61,4 +61,35 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     });
   };
 
+  function findCommentByTimeAndContent (time, content) {
+    for (var i=0; i<videosService.currentVideo.comments.length; i++) {
+      if (videosService.currentVideo.comments[i].time == time && videosService.currentVideo.comments[i].content == content) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  this.addComment = function(timeAndComment) {
+    console.log('Videos::addComment:', timeAndComment);
+    console.log(this.currentVideo);
+    var videoForComment = this.currentVideo;
+    if (this.currentVideo.hasOwnProperty('comments')) {
+      var newComment = {comment:{time:timeAndComment.time, content:timeAndComment.comment, user:User.user.id, video:this.currentVideo.id}};
+      $http({method: 'GET', url: '/api/comment/new', params:newComment}).success(function(results) {
+        console.log(results);
+        if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
+          var commentIdx = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
+          if (commentIdx >= 0) {
+            videosService.currentVideo.comments[commentIdx].id = results.id;  // TODO:maybe also change some css here 
+                                                                              // so that they know the comment was saved 
+                                                                              // successfully, or to make it possible to edit comment
+          }
+        }
+      });
+      this.currentVideo.comments.push(newComment.comment);
+      console.log(this.currentVideo.comments);
+    }
+  };
+
 });

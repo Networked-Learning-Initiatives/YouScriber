@@ -276,6 +276,8 @@ function addVideo (response, userId, httpResponse) {
     console.log(results);
     video.id = results.insertId;
     httpResponse.status(200).json(video);
+  }, function (err) {
+    httpResponse.status(500).send('problem with db query to add video '+err);
   });
 }
 
@@ -299,6 +301,8 @@ app.get('/api/video/new', function(req, res) {
   var user = JSON.parse(req.query.user);
   console.log(user);
 
+  // TODO: should check here that the user has permission to add the video?
+
   request('http://gdata.youtube.com/feeds/api/videos/'+req.query.ytid+'?v=2&alt=json', function (error, response, body) {
     if (!error && response.statusCode == 200) {
       // console.log(response); // Print the google web page.
@@ -306,6 +310,52 @@ app.get('/api/video/new', function(req, res) {
       addVideo(response, user.id, res);
     }
   });
+});
+
+function addComment(comment, httpResponse) {
+  // comment={time:time, content:comment, user:User.user.id, video:this.currentVideo}
+
+  var insertCommentQuery = 'insert into comment (time, content, author, video_id) values (?,?,?,?)';
+  executeQuery(insertCommentQuery, [comment.time, comment.content, comment.user, comment.video], function(results){
+    console.log(results);
+    httpResponse.status(200).json({id:results.insertId});
+  }, function (err) {
+    httpResponse.status(500).send('problem with db query to add comment '+err);
+  });
+
+}
+
+app.get('/api/comment/new', function(req, res) {
+  console.log('/api/comment/new', req.query);
+
+  if (!req.query.hasOwnProperty('comment')) {
+    var msg = 'got now comment data when adding new comment';
+    console.log(msg);
+    res.status(500).json({msg:msg});
+    return;
+  }
+
+  var comment = JSON.parse(req.query.comment);
+  console.log(comment);
+
+  if (!comment.hasOwnProperty('user')) {
+    var msg = 'have to be logged in to add a new comment';
+    console.log(msg);
+    res.status(500).json({msg:msg});
+    return;
+  }
+
+  if (!comment.hasOwnProperty('video')) {
+    var msg = 'no video id received for new comment.';
+    console.log(msg);
+    res.status(500).json({msg:msg});
+    return;
+  }
+
+  // TODO: check that user has permission to comment
+
+  addComment(comment, res);
+
 });
 
 app.get('/api/videos/:vid', function(req, res) {
