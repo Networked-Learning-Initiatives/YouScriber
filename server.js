@@ -463,6 +463,37 @@ app.post('/api/org', function (req, res) {
   }
 });
 
+app.post('/api/group', function (req, res) {
+
+  // check if we have the title and description and a user to be the owner
+
+  if (req.body.hasOwnProperty('title')) {
+    console.log('we found the title', req.body.title);
+  }
+
+  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('user')) {
+    // TODO: consider making description optional
+    var addGroupQuery = "insert into ysgroup (title, owner) values (?,?)";
+    
+    executeQuery(addGroupQuery, [req.body.title, req.body.user.id], function(result) {
+      //called for success
+      console.log(result);
+      res.status(201).json({
+        id:result.insertId,
+        title: req.body.title
+      });
+
+    }, function (err) {
+      // called for error
+      res.status(400).send('error creating group: '+err);
+    });
+  }
+  else {
+    var errorMessage = 'title, and user are all required to create and group';
+    res.status(400).send(errorMessage);
+  }
+});
+
 app.use(express.static(__dirname + '/app'));
 
 var server = app.listen(port, function () {

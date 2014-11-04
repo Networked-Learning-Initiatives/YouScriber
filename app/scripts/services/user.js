@@ -60,6 +60,19 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       });
   };
 
+  this.registerGroup = function (title, description, successCallback, errorCallback) {
+    console.log('this.registerGroup::this.user:', this.user);
+    $http.post('/api/group', {title: title, description:description, user:this.user})
+      .success(function(data) {
+        console.log(data);
+        // userService.user.orgs.push = {name:user};
+        successCallback(data);
+      })
+      .error(function(error) {
+        errorCallback(error);
+      });
+  };
+
   this.loggedIn = function () {
     return this.hasOwnProperty('user') && this.user!=null;
   }

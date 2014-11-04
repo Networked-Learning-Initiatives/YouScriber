@@ -36,6 +36,10 @@ angular.module('youScriberApp', [
         templateUrl: 'views/org-registration.html',
         controller: 'OrganizationRegistrationCtrl'
       })
+      .when('/register/group', {
+        templateUrl: 'views/group-registration.html',
+        controller: 'GroupRegistrationCtrl'
+      })
       // .when('/register/:org', {
       //   templateUrl: 'views/registration.html',
       //   controller: 'RegistrationCtrl'
