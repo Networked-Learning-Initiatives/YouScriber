@@ -212,7 +212,7 @@ app.post('/api/user', function (req, res) {
           executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
             function (newUserSuccess) {
               console.log(newUserSuccess);
-              res.status(201).json({id:newUserSuccess.rows[0].id});
+              res.status(201).json({id:newUserSuccess.insertId});
             },
             function (newUserError) {
               res.status(500).json({msg:newUserError});
