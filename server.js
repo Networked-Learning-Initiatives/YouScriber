@@ -205,6 +205,7 @@ app.post('/api/user', function (req, res) {
     executeQuery(checkUser, [req.body.user], 
       function (checkUserResult){
         //there's no user already using the requested username
+        console.log(checkUserResult);
         if (checkUserResult.rowCount < 1) {
           //add this user to the db
           var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?) returning id";
