@@ -208,7 +208,7 @@ app.post('/api/user', function (req, res) {
         console.log(checkUserResult);
         if (checkUserResult.length < 1) {
           //add this user to the db
-          var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?) returning id";
+          var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?)";
           executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
             function (newUserSuccess) {
               console.log(newUserSuccess);
