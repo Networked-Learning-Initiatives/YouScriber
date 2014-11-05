@@ -23,7 +23,7 @@ angular.module('youScriberApp').controller('RegistrationCtrl', function ($scope,
       $scope.errorMessage = 'please enter a valid email address.';
       return;
     }
-    else if (!$scope.hasOwnProperty('password') || !scope.password || $scope.password === null || $scope.password.length == 0) {
+    else if (!$scope.hasOwnProperty('password') || !$scope.password || $scope.password === null || $scope.password.length == 0) {
       $scope.errorMessage = 'please enter a password.';
       return;
     }
