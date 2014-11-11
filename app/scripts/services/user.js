@@ -74,7 +74,14 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
   };
 
   this.loggedIn = function () {
-    return this.hasOwnProperty('user') && this.user!=null;
+    var loggedIn = this.hasOwnProperty('user') && this.user!=null;
+
+    if (!loggedIn && $cookies.hasOwnProperty('youScriber-user')) {
+      this.user = $cookies['youScriber-user'];
+      loggedIn = true;
+    }
+
+    return loggedIn;
   }
 
 });
