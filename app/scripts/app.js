@@ -9,7 +9,8 @@ angular.module('youScriberApp', [
   'firebase',
   'xeditable',
   'ui.bootstrap',
-  'angular-md5'
+  'angular-md5',
+  'ngEnter'
 ])
   .config(function ($routeProvider) {
     $routeProvider
