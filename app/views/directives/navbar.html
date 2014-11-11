@@ -12,9 +12,34 @@
     </div>
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-plus"></i> <span class="caret"></span></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#"><i class="fa fa-youtube-play"></i>New Video</a></li>
+            <li><a href="#/register/group"><i class="fa fa-group"></i>New Group</a></li>
+            <li><a href="#/register/org"><i class="fa fa-institution"></i>New Organization</a></li>
+            
+            <li class="divider"></li>
+
+            <li class="dropdown-header">This Organization</li>
+            <li><a href="#"><i class="fa fa-youtube-play"></i>New Video</a></li>
+            <li><a href="#"><i class="fa fa-group"></i>New Group</a></li>
+            
+            <li class="divider"></li>
+
+            <li class="dropdown-header">This Group</li>
+            <li><a href="#"><i class="fa fa-youtube-play"></i>New Video</a></li>
+            <li><a href="#"><i class="fa fa-user"></i>Invite Someone</a></li>
+
+            <li class="divider"></li>
+
+            <li class="dropdown-header">This Video</li>
+            <li><a href="#"><i class="fa fa-user"></i>Invite Someone</a></li>
+          </ul>
+        </li>
         <li ng-show="!userService.loggedIn()"><a href="#/login">Login</a></li>
         <li ng-show="userService.loggedIn()" ng-click="logout()"><a href="#/dash">Logout</a></li>
-        <li><a href="#/register">Register</a></li>
+        <li ng-show="!userService.loggedIn()"><a href="#/register">Register</a></li>
       </ul>
     </div>
   </div><!-- /.container-fluid -->

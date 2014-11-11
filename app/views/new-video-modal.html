@@ -1,0 +1,35 @@
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" ng-click="dismiss()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+  <h4 class="modal-title" id="myModalLabel">YouTube Video ID</h4>
+</div>
+
+<div class="modal-body">
+  <p>
+    In order to annotate a video, you must first find its "video id." <a href="http://youtube.com/" target="_blank">Open YouTube in a new tab</a>, search for the video you'd like to annotate, and then click share. Copy the link in the resulting text field, and paste it in the box below.
+  </p>            
+  <div class="form-group" ng-class="{'has-error': errorMessage.length>0}">
+    <label for="inputVideoId" class="col-sm-2 control-label">YouTube Video Id</label>
+    <div class="col-sm-10">
+      
+      <input type="text" class="form-control" id="inputVideoId" placeholder="http://youtu.be/dQw4w9WgXcQ" ng-model="modal.videoId" ng-enter="modalMakeVideo()">
+
+      <pre>{{modalVideoId}}</pre>
+     
+      <div class="media help-block" ng-show="errorMessage.length>0">
+        <a class="pull-left" href="#">
+          <img class="media-object" width="213" src="images/video-id-help.png" alt="Screenshot of getting the video id for a YouTube video">
+        </a>
+        <div class="media-body">
+          <h4 class="media-heading">{{errorMessage}}</h4>
+          <p>A videoId should be something like <code>http://youtu.be/dQw4w9WgXcQ</code> or <code>dQw4w9WgXcQ</code>.</p>
+        </div>
+      </div>
+      <!-- <span class="help-block" ng-show="errorMessage.length>0"></span> -->
+    </div>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button class="btn btn-default" data-dismiss="modal" ng-click="dismiss()">Close</button>
+  <button class="btn btn-primary" ng-click="modalMakeVideo()">Annotate</button>
+</div>

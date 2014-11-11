@@ -324,3 +324,13 @@ h1.video-title {
 .error-message.text-danger {
   color: #a94442;
 }
+
+.navbar .dropdown .dropdown-menu li a {
+  padding-left: 40px
+}
+
+.navbar .dropdown .dropdown-menu li a i { 
+  float: left;
+  margin-top: 3px;
+  margin-left: -20px;
+}
