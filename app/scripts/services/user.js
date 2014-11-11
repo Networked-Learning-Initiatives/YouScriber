@@ -77,7 +77,8 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
     var loggedIn = this.hasOwnProperty('user') && this.user!=null;
 
     if (!loggedIn && $cookies.hasOwnProperty('youScriber-user')) {
-      this.user = $cookies['youScriber-user'];
+      this.user = JSON.parse($cookies['youScriber-user']);
+      console.log(this.user);
       loggedIn = true;
     }
 
