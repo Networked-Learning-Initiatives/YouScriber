@@ -472,11 +472,11 @@ app.post('/api/group', function (req, res) {
     console.log('we found the title', req.body.title);
   }
 
-  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('user')) {
+  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
     // TODO: consider making description optional
-    var addGroupQuery = "insert into ysgroup (title, owner) values (?,?)";
+    var addGroupQuery = "insert into ysgroup (title, description, owner) values (?,?,?)";
     
-    executeQuery(addGroupQuery, [req.body.title, req.body.user.id], function(result) {
+    executeQuery(addGroupQuery, [req.body.title, req.body.description, req.body.user.id], function(result) {
       //called for success
       console.log(result);
       res.status(201).json({
@@ -490,7 +490,7 @@ app.post('/api/group', function (req, res) {
     });
   }
   else {
-    var errorMessage = 'title, and user are all required to create and group';
+    var errorMessage = 'title, description, and user are all required to create and group';
     res.status(400).send(errorMessage);
   }
 });

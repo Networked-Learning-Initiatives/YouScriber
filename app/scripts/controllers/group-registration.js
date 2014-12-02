@@ -9,6 +9,8 @@ angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($s
   $scope.errorMessage = '';
   $scope.groupExists = false;
 
+  console.log($routeParams);
+
   $scope.registerGroup = function() {
     if (!$scope.title || $scope.title === null || $scope.title.length < 1) {
       $scope.errorMessage = 'please enter a title.';

@@ -6,7 +6,6 @@ angular.module('youScriberApp', [
   'ngSanitize',
   'ngRoute',
   'youtubeapi',
-  'firebase',
   'xeditable',
   'ui.bootstrap',
   'angular-md5',
@@ -45,6 +44,10 @@ angular.module('youScriberApp', [
       //   templateUrl: 'views/registration.html',
       //   controller: 'RegistrationCtrl'
       // })
+      .when('/org/:orgId/register/group', {
+        templateUrl: 'views/group-registration.html',
+        controller: 'GroupRegistrationCtrl'
+      })
       .when('/manage', {
         templateUrl: 'views/manage.html',
         controller: 'ManageCtrl'

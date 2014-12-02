@@ -5,6 +5,10 @@
         <label for="title">Group Title</label>
         <input type="text" class="form-control" id="title" placeholder="Enter desired Group Title" ng-model="title" autofocus>
       </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea ng-model="description" placeholder="describe your group"></textarea>
+      </div>
       <button type="submit" class="btn btn-default" ng-class="{'disabled': title.length<1}">Submit</button>
       <p class="text-danger error-message">{{errorMessage}}</p>
     </form>

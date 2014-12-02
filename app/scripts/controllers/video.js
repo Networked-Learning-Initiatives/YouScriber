@@ -13,7 +13,7 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $firebase, $routeParams, $location, $rootScope, Videos, User) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $routeParams, $location, $rootScope, Videos, User) {
   $scope.videoId = $routeParams.videoId; //this is the video's id in OUR database
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;

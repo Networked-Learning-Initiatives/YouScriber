@@ -19,6 +19,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       .success(function(data) {
         console.log('logged in!', data);
         userService.user = {name:user, id:data.id, orgs:data.orgs, groups:data.groups};
+        userService.currentContext = userService.user;
         $cookies['youScriber-user'] = JSON.stringify(userService.user);
         $rootScope.$emit('user-logged-in');
         successCallback(data);
@@ -83,6 +84,14 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
     }
 
     return loggedIn;
-  }
+  };
+
+  this.getCurrentContext = function () {
+    if (!this.currentContext)
+    {
+      this.currentContext = this.user;
+    }
+    return this.currentContext;
+  };
 
 });
