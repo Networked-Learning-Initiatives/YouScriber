@@ -2,7 +2,7 @@
 body {
   /*padding-top: 20px;*/
   padding-bottom: 20px;
-  overflow: hidden;
+  /*overflow: hidden;*/
 }
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
@@ -305,7 +305,11 @@ h1.video-title {
   margin-bottom: 20px;
 }
 
-.dash .col-md-12 {
+/*.dash .col-md-12 {
+  padding-top: 30px;
+}*/
+
+.youscriber .body {
   padding-top: 30px;
 }
 
@@ -315,4 +319,18 @@ h1.video-title {
 
 .comment:hover td {
   border-color: #000;
+}
+
+.error-message.text-danger {
+  color: #a94442;
+}
+
+.navbar .dropdown .dropdown-menu li a {
+  padding-left: 40px
+}
+
+.navbar .dropdown .dropdown-menu li a i { 
+  float: left;
+  margin-top: 3px;
+  margin-left: -20px;
 }

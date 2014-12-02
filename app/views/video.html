@@ -1,31 +1,34 @@
 <div class="row">
-  <div class="col-md-12">
-    <h1 class="video-title">{{videoMetadata.entry.title.$t}}</h1>
-    <!-- <span>Change Video: </span><a href="#" editable-text="videoIdInProgress">{{ videoIdInProgress || "YouTube video ID" }}</a> -->
+  <div class="col-md-12 body">
+    <h1 class="video-title">{{videosService.currentVideo.title}}</h1>
+    
   </div>
 </div>
 <div class="row">
   <div class="col-md-6 left-col">
-    <ys-youtube video-id="videoId" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime" metadata="videoMetadata"></ys-youtube>
-    <timeline comments="comments" duration="videoMetadata.entry['media$group']['yt$duration'].seconds" width="600" time="videoTime"></timeline>
-    <form class="form-inline" role="form">
+    
+    <ys-youtube video-id="videosService.currentVideo.ytid" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime"></ys-youtube>
+    <timeline comments="videosService.currentVideo.comments" duration="videosService.currentVideo.duration" width="600" time="videoTime"></timeline>
+
+    <!-- TODO: at some point need a more sophisticated check for this or else prevent access to this view in the first place -->
+    <form class="form-inline" role="form" ng-show="userService.loggedIn()">
       <div class="form-group">
         <label class="sr-only" for="comment">Enter a new comment here</label>
         <textarea cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()"></textarea>
       </div>
-      <!-- <button type="submit" class="btn btn-lg btn-primary" id="submit-comment" ng-click="post()">Post</button> -->
+      
     </form>
   </div>
   <div class="col-md-6 comments-col">
     <table class="comments">
-      <tr class="comment" ng-click="seekTo(timecomment.time)" ng-repeat="timecomment in comments | timefilter" ng-class="{'current-comment':isCurrentComment(timecomment)}">
+      <tr class="comment" ng-click="seekTo(timecomment.time)" ng-repeat="timecomment in videosService.currentVideo.comments | timefilter" ng-class="{'current-comment':isCurrentComment(timecomment)}">
         <td class="comment-time">{{timecomment.time | secondsfilter}}</td>
-        <td class="comment-text">{{timecomment.comment}}</td>
+        <td class="comment-text">{{timecomment.content}}</td>
       </tr>
     </table>
   </div>
 </div>
 <div hidden class="row">
-  {{videoMetadata}}
+  {{videosService.currentVideo}}
 
 </div>
