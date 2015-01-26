@@ -35,6 +35,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       .success(function(data) {
         console.log('logged out!', data);
         delete $cookies['youScriber-user'];
+        delete $cookies['youScriber-context'];
         userService.user = null;
 
         if (successCallback) {
@@ -89,9 +90,19 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
   this.getCurrentContext = function () {
     if (!this.currentContext)
     {
-      this.currentContext = this.user;
+      if ($cookies.hasOwnProperty('youScriber-context')) {
+        this.currentContext = JSON.parse($cookies['youScriber-context']);
+      } else {
+        this.currentContext = this.user;
+      }
     }
     return this.currentContext;
+  };
+
+  this.setCurrentContext = function(org) {
+    console.log('changing context: ', org);
+    this.currentContext = org;
+    $cookies['youScriber-context'] = JSON.stringify(org);
   };
 
 });
