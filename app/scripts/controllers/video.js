@@ -135,6 +135,13 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
     //TODO: cancel timer(s) created by yt directive!
   });
 
+  $scope.updateTime = function(comment) {
+    console.log('\n\n\ncomment time updated\n\n\n');
+    console.log(comment);
+
+    // actually update the server with the new time: comment.time
+  };
+
 }).filter('timefilter', function() {
   return function(input) {
     if (Array.isArray(input)) {
