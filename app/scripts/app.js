@@ -10,7 +10,7 @@ angular.module('youScriberApp', [
   'ui.bootstrap',
   'angular-md5',
   'ngEnter'
-])
+]) 
   .config(function ($routeProvider) {
     $routeProvider
       .when('/dash', {
