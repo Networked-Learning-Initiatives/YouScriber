@@ -45,6 +45,12 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
           height: scope.height
         };
 
+        scope.$on('$destroy', function(){
+          if (scope.hasOwnProperty('timer') && scope.timer) {
+            $interval.cancel(scope.timer);
+          }
+        });
+
         swfobject.createSWF(scope.atts, scope.params, "swf-container");
         scope.timer = $interval(function(){
           console.log('timer went off');
