@@ -173,7 +173,7 @@ table.comments tbody {
 
 tr.comment td:first-child { 
   border-top-left-radius: 10px; 
-  border-right: 0;
+  /*border-right: 0;*/
 }
 
 tr.comment td:last-child { 
@@ -264,7 +264,7 @@ tr.comment td:first-child {
 
 tr.current-comment td:first-child { 
   border-top-left-radius: 10px; 
-  border-right: 0;
+  /*border-right: 0;*/
   /*box-shadow: -8px 0 4px -4px #158d9d, 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
 }
 
@@ -333,4 +333,9 @@ h1.video-title {
   float: left;
   margin-top: 3px;
   margin-left: -20px;
+}
+
+.navbar-brand img {
+  width: 50px;
+  margin-top: -14px;
 }
