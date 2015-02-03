@@ -13,8 +13,8 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $routeParams, $location, $rootScope, Videos, User) {
-  $scope.videoId = $routeParams.videoId; //this is the video's id in OUR database
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User) {
+  $scope.videoId = $stateParams.videoId; //this is the video's id in OUR database
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
   // $scope.videoMetadata = {};
@@ -29,9 +29,9 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
     return 0<=delta && delta < 1.3;
   };
   
-  if ($routeParams.hasOwnProperty('videoId')) {
-    console.log('found video id:', $routeParams.videoId);
-    $scope.videoId = $routeParams.videoId;
+  if ($stateParams.hasOwnProperty('videoId')) {
+    console.log('found video id:', $stateParams.videoId);
+    $scope.videoId = $stateParams.videoId;
     Videos.getVideo($scope.videoId);
   }
 
@@ -137,8 +137,8 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   });
 
   $scope.updateTime = function(comment) {
-    console.log('\n\n\ncomment time updated\n\n\n');
-    console.log(comment);
+    // console.log('\n\n\ncomment time updated\n\n\n');
+    // console.log(comment);
 
     // actually update the server with the new time: comment.time
   };

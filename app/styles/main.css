@@ -339,3 +339,7 @@ h1.video-title {
   width: 50px;
   margin-top: -14px;
 }
+
+tr.comment.active-comment td {
+  border-color: red;
+}

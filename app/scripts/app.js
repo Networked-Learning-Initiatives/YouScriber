@@ -9,52 +9,64 @@ angular.module('youScriberApp', [
   'xeditable',
   'ui.bootstrap',
   'angular-md5',
-  'ngEnter'
+  'ngEnter',
+  'ui.router'
 ])
-  .config(function ($routeProvider) {
-    $routeProvider
-      .when('/dash', {
+  .config(function($stateProvider, $urlRouterProvider) {
+    $urlRouterProvider.otherwise('/dash');
+    $stateProvider
+      .state('dash', {
+        url:'/dash', 
         templateUrl: 'views/dash.html',
         controller: 'DashCtrl'
       })
-      .when('/video/:videoId', {
+      .state('video', {
+        url:'/video/:videoId', 
         templateUrl: 'views/video.html',
         controller: 'VideoCtrl'
       })
-      .when('/register', {
+        .state('video.comments', {
+          // params: [],
+          url:'/comments',
+          templateUrl: 'views/comments.html',
+          controller: 'CommentsCtrl'
+        })
+        .state('video.comment', {
+          // params: [],
+          url:'/comments/:commentId',
+          templateUrl: 'views/comments.html',
+          controller: 'CommentsCtrl'
+        })
+      .state('register', {
+        url:'/register', 
         templateUrl: 'views/registration.html',
         controller: 'RegistrationCtrl'
       })
-      .when('/login', {
+      .state('login', {
+        url:'/login', 
         templateUrl: 'views/login.html',
         controller: 'LoginCtrl'
       })
-      // .when('/login', {
-      //   redirectTo: '/login/student'
-      // })
-      .when('/register/org', {
+      .state('registerOrg', {
+        url:'/register/org', 
         templateUrl: 'views/org-registration.html',
         controller: 'OrganizationRegistrationCtrl'
       })
-      .when('/register/group', {
+      .state('registerGroup', {
+        url:'/register/group', 
         templateUrl: 'views/group-registration.html',
         controller: 'GroupRegistrationCtrl'
       })
-      // .when('/register/:org', {
-      //   templateUrl: 'views/registration.html',
-      //   controller: 'RegistrationCtrl'
-      // })
-      .when('/org/:orgId/register/group', {
+      .state('org', {
+        url:'/org/:orgId/register/group', 
         templateUrl: 'views/group-registration.html',
         controller: 'GroupRegistrationCtrl'
       })
-      .when('/manage', {
+      .state('manage', {
+        url:'/manage', 
         templateUrl: 'views/manage.html',
         controller: 'ManageCtrl'
       })
-      .otherwise({
-        redirectTo: '/dash'
-      });
   })
   .run(function(editableOptions) {
     editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'

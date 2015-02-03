@@ -9,7 +9,7 @@ angular.module('youScriberApp').directive('panel', function($location) {
     replace: true,
     templateUrl: 'views/directives/panel.html',
     link: function (scope, iElement, iAttrs, controller) {
-      console.log(iAttrs);
+      // console.log(iAttrs);
       scope.panelTitle = iAttrs.panelTitle;
     }
   };

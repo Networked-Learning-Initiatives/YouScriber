@@ -1,7 +1,6 @@
 <div class="row">
   <div class="col-md-12 body">
     <h1 class="video-title">{{videosService.currentVideo.title}}</h1>
-    
   </div>
 </div>
 <div class="row">
@@ -20,14 +19,7 @@
     </form>
   </div>
   <div class="col-md-6 comments-col">
-    <table class="comments">
-      <tr id="{{timecomment.id}}" class="comment" ng-click="seekTo(timecomment.time)" ng-repeat="timecomment in videosService.currentVideo.comments | timefilter" ng-class="{'current-comment':isCurrentComment(timecomment)}">
-        <td class="comment-number">{{$index+1}}</td>
-        <td class="comment-time"><span editable-text="timecomment.time" onaftersave="updateTime(timecomment)">{{timecomment.time | secondsfilter}}</span></td>
-        <td class="comment-text">{{timecomment.content}}</td>
-        <td><a ng-href="##{{timecomment.id}}"><i class="fa fa-link"></i></a></td>
-      </tr>
-    </table>
+    <table class="comments" ui-view></table>
   </div>
 </div>
 <div hidden class="row">
