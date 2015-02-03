@@ -20,6 +20,11 @@ angular.module('youScriberApp').controller('NewVideoModalCtrl', function ($scope
       // $modalInstance.dismiss($scope.errorMessage);
     }
     else {
+      var wrongPrefix = "watch?v=";
+      console.log($scope.modal.videoId.substr(0,wrongPrefix.length));
+      if ($scope.modal.videoId.substr(0,wrongPrefix.length) == wrongPrefix) {
+        $scope.modal.videoId = $scope.modal.videoId.substr(wrongPrefix.length);
+      }
       $modalInstance.close($scope.modal.videoId);
 
       // $('#new-video-modal').modal('hide');
