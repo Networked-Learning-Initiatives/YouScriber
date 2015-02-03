@@ -133,6 +133,7 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
 
   $scope.$on("$destroy", function() {
     //TODO: cancel timer(s) created by yt directive!
+    Videos.currentVideo = {};
   });
 
   $scope.updateTime = function(comment) {
