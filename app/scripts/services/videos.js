@@ -7,7 +7,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   this.currentVideo = {};
 
   this.getPublicVideos = function (user) {
-    console.log(user);
+    // console.log(user);
 
     var queryParams = {}
     if (user) {
@@ -49,9 +49,9 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     if (User.loggedIn()) {
       params.user = User.user;
     } else {
-      console.log('got logged out!');
+      // console.log('got logged out!');
     }
-    console.log(params,id);
+    // console.log(params,id);
     $http({method: 'GET', url: '/api/videos/'+id, params:params}).success(function(results) {
       videosService.currentVideo = results.video;
     });

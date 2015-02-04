@@ -27,7 +27,7 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
       scope.videoMetadata = Videos.get({videoid:scope.code});
       
       scope.destroyWatch = scope.$watch('code', function (newVal) {
-        console.log('video code change noticed in yt directive', newVal);
+        // console.log('video code change noticed in yt directive', newVal);
         if (scope.hasOwnProperty('timer')) {
           $interval.cancel(scope.timer);
         }
@@ -60,8 +60,8 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
           }
         });
 
-        console.log('about to create this friggin video!');
-        console.log(scope.atts);
+        // console.log('about to create this friggin video!');
+        // console.log(scope.atts);
         swfobject.createSWF(scope.atts, scope.params, "swf-container");
         scope.timer = $interval(function(){
           // console.log('timer went off');

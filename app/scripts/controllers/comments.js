@@ -16,21 +16,6 @@ String.prototype.toHHMMSS = function () {
 angular.module('youScriberApp').controller('CommentsCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User) {
 
   $scope.videosService = Videos;
-  // $scope.$watch('$stateParams.commentId', function(){
-  //   console.log('hit the watch', $stateParams.commentId);
-  //   if ($stateParams.hasOwnProperty('commentId')) {
-  //     console.log("#"+$stateParams.commentId);
-  //     var elem = angular.element("#"+$stateParams.commentId);
-  //     console.log(elem);
-  //     console.log(elem.offset());
-  //     var top = $("#"+$stateParams.commentId).offset().top;
-  //     if (top) {
-  //       $('table.coments').animate({
-  //           scrollTop: top
-  //       }, 500);
-  //     }
-  //   }
-  // });
 
 }).filter('timefilter', function() {
   return function(input) {

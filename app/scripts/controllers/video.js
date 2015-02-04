@@ -13,7 +13,7 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User, Player) {
   $scope.videoId = $stateParams.videoId; //this is the video's id in OUR database
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
@@ -23,14 +23,9 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   $scope.userService = User;
 
   $scope.Math = window.Math;
-
-  $scope.isCurrentComment = function(comment){
-    var delta = $scope.videoTime - comment.time;
-    return 0<=delta && delta < 1.3;
-  };
   
   if ($stateParams.hasOwnProperty('videoId')) {
-    console.log('found video id:', $stateParams.videoId);
+    // console.log('found video id:', $stateParams.videoId);
     $scope.videoId = $stateParams.videoId;
     Videos.getVideo($scope.videoId);
   }
@@ -38,33 +33,12 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   $scope.videosService = Videos;
   $scope.videoYTId = Videos.currentVideo.ytid;
 
-  // var videosRef = new Firebase("https://amber-fire-1732.firebaseio.com/videos");
-  // $scope.videos = $firebase(videosRef);
-
   $scope.comments = {};
-  
-  // $scope.videos.$on("loaded", function(value) {
-  //   if (value &&value.hasOwnProperty($scope.videoId)) {
-  //     $scope.comments = value[$scope.videoId];
-  //   }
-  // });
 
-  // $scope.$watch('videos', function(newValue, oldValue){
-  //   if (newValue[$scope.videoId] && newValue[$scope.videoId].hasOwnProperty('comments')) {
-  //     $scope.comments = newValue[$scope.videoId].comments;
-  //   }
-  // }, true);
-
-  $scope.playerId = Math.floor(Math.random()*10000000);
+  $scope.playerId = Player.playerId;
   $scope.newComment = '';
-  $scope.player = false;
-
-
-
-  $window.onYouTubePlayerReady = function (id) {
-    $scope.player = document.getElementById('ytPlayer-'+$scope.playerId);
-    $scope.player.playVideo();
-  };
+  // $scope.player = false;
+  $scope.playerService = Player;
 
   $scope.thumbnails = function() {
     var thumbs = [];
@@ -75,59 +49,21 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   }
 
   $scope.post = function() {
-    // var timecode = $scope.player.getCurrentTime().toString().replace(/\./g,'-');
 
     var theNewComment = {
-      time: $scope.player.getCurrentTime(),
+      time: $scope.playerService.getCurrentTime(),
       comment: $scope.newComment
     };
-
-    // if (!$scope.videos.hasOwnProperty($scope.videoId)) {
-    //   var tmp = {};
-    //   tmp[$scope.videoId] = {
-    //     comments:[theNewComment],
-    //     title: $scope.videoMetadata.entry.title.$t,
-    //     thumbnails: $scope.thumbnails()
-    //   };
-    //   $scope.videos.$update(tmp);
-    // } else {
-    //   if (!$scope.videos[$scope.videoId].hasOwnProperty('title')) {
-    //     $scope.videos[$scope.videoId].title = $scope.videoMetadata.entry.title.$t;
-    //     $scope.videos[$scope.videoId].thumbnails = $scope.thumbnails();
-    //   }
-
-    //   if ($scope.videos[$scope.videoId].hasOwnProperty('comments')) {
-    //       $scope.videos[$scope.videoId].comments.push(theNewComment);
-    //       $scope.videos.$save($scope.videoId);
-    //   } else {
-    //     $scope.videos[$scope.videoId].comments = [theNewComment];
-    //     $scope.videos.$save($scope.videoId);
-    //   }
-    // }
 
     Videos.addComment(theNewComment);
 
     $scope.newComment = '';
-    $scope.player.playVideo();
+    $scope.playerService.playVideo();
   };
 
   $scope.typing = function() {
-    $scope.player.pauseVideo();
+    $scope.playerService.pauseVideo();
   }; 
-
-  $scope.seekTo = function(t) {
-    $scope.player.seekTo(t, true);
-    $('textarea#comment').focus();
-  };
-
-  $rootScope.$on('seek-to', function(evt, t){
-    videoScope.seekTo(t);
-  });
-
-  $scope.changeVideo = function() {
-    // $scope.videoId = $scope.videoIdInProgress;
-    $location.path('/video/'+$scope.videoIdInProgress);
-  };
 
   $scope.videoTime = 0;
 
