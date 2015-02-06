@@ -334,3 +334,7 @@ h1.video-title {
   margin-top: 3px;
   margin-left: -20px;
 }
+
+div.img {
+  position: absolute;
+}
