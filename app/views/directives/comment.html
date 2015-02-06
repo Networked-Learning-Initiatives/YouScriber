@@ -1,0 +1,5 @@
+<tr id="{{timecomment.id}}" class="comment" ng-click="seekTo()" ng-class="{'current-comment':isCurrentComment(timecomment)}">
+  <td class="comment-number">{{idx+1}}</td>
+  <td class="comment-time"><span editable-text="timecomment.time" onaftersave="updateTime(timecomment)">{{timecomment.time | secondsfilter}}</span></td>
+  <td class="comment-text">{{timecomment.content}}</td>
+</tr>

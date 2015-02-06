@@ -16,7 +16,8 @@
     "angular-md5": "~0.1.7",
     "angular-xeditable": "~0.1.8",
     "fontawesome": "~4.2.0",
-    "ngEnter": "~0.0.1"
+    "ngEnter": "~0.0.1",
+    "ui-router": "~0.2.13"
   },
   "devDependencies": {
     "angular-mocks": "1.2.6",

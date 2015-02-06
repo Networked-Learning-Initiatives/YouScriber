@@ -32,7 +32,7 @@
     <!-- Add your site or application content here -->
     <navbar></navbar>
 
-    <div class="container-fluid youscriber-view" ng-view=""></div>
+    <div class="container-fluid youscriber-view" ui-view=""></div>
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
      <script>
@@ -63,6 +63,7 @@
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
     <script src="bower_components/angular-md5/angular-md5.js"></script>
     <script src="bower_components/ngEnter/dist/ngEnter.js"></script>
+    <script src="bower_components/ui-router/release/angular-ui-router.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     <script src="bower_components/angular-xeditable/dist/js/xeditable.js"></script>
@@ -71,6 +72,7 @@
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
     <script src="scripts/app.js"></script>
     <script src="scripts/controllers/video.js"></script>
+    <script src="scripts/controllers/comments.js"></script>
     <script src="scripts/controllers/dash.js"></script>
     <script src="scripts/controllers/registration.js"></script>
     <script src="scripts/controllers/org-registration.js"></script>
@@ -80,6 +82,7 @@
     <script src="scripts/controllers/login.js"></script>
     <script src="scripts/services/videos.js"></script>
     <script src="scripts/services/user.js"></script>
+    <script src="scripts/services/player.js"></script>
     <script src="scripts/directives/navbar/navbar.js"></script>
     <script src="scripts/directives/youtube/youtube.js"></script>
     <script src="scripts/directives/enter-submit/enter-submit.js"></script>
@@ -87,6 +90,7 @@
     <script src="scripts/directives/panel/panel.js"></script>
     <script src="scripts/directives/timeline/timeline.js"></script>
     <script src="scripts/directives/timeline/timelineCircle.js"></script>
+    <script src="scripts/directives/comment/comment.js"></script>
     <!-- endbuild -->
   </body>
 </html>
