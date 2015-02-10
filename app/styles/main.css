@@ -335,6 +335,10 @@ h1.video-title {
   margin-left: -20px;
 }
 
+div.img {
+  position: absolute;
+}
+
 .navbar-brand img {
   width: 50px;
   margin-top: -14px;

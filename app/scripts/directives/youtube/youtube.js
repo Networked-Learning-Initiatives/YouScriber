@@ -64,7 +64,6 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
         // console.log(scope.atts);
         swfobject.createSWF(scope.atts, scope.params, "swf-container");
         scope.timer = $interval(function(){
-          // console.log('timer went off');
           var el = $('#ytPlayer-'+scope.playerId)[0];
           if (el && el.hasOwnProperty('getCurrentTime')){
             var t = el.getCurrentTime();
