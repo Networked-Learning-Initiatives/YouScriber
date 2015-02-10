@@ -31,6 +31,31 @@ angular.module('youScriberApp', [
           templateUrl: 'views/comments.html',
           controller: 'CommentsCtrl'
         })
+          .state('video.comments.settings', {
+            url: '/settings',
+            onEnter: ['$stateParams', '$state', '$modal', '$resource', 'Videos', function($stateParams, $state, $modal, $resource, Videos) {
+              $modal.open({
+                  templateUrl: "views/video/settings.html",
+                  resolve: {
+                    video: function() { Videos.getVideo($stateParams.videoId); }
+                  },
+                  controller: ['$scope', 'video', function($scope, video) {
+                    $scope.dismiss = function() {
+                      $scope.$dismiss();
+                    };
+
+                    $scope.save = function() {
+                      console.log('save the settings for the video');
+                      // item.update().then(function() {
+                      //   $scope.$close(true);
+                      // });
+                    };
+                  }]
+              }).result.finally(function() {
+                  $state.go('^');
+              });
+            }]
+          })
         .state('video.comment', {
           // params: [],
           url:'/comments/:commentId',
