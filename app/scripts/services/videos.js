@@ -1,5 +1,5 @@
 'use strict';
-angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $q, User, $location) {
+angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $q, User, $location, $state) {
 
   var videosService = this;
 
@@ -39,7 +39,8 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
       console.log(results);
       videosService.currentVideo = results;
       // $rootScope.$apply(function(){
-        $location.path('/video/'+videosService.currentVideo.id);
+        // $location.path('/video/'+videosService.currentVideo.id);
+        $state.go('video.comments', {videoId: videosService.currentVideo.id});
       // });
     });
   };
@@ -67,9 +68,11 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   }
 
   this.addComment = function(timeAndComment) {
+    console.log('videoservice addComment');
+    console.log(timeAndComment);
     var videoForComment = this.currentVideo;
     if (this.currentVideo.hasOwnProperty('comments')) {
-      var newComment = {comment:{time:timeAndComment.time, content:timeAndComment.comment, user:User.user.id, video:this.currentVideo.id}};
+      var newComment = {comment:{time:timeAndComment.time, content:timeAndComment.comment, user:User.user.id, name:User.user.name,  video:this.currentVideo.id}};
       $http({method: 'GET', url: '/api/comment/new', params:newComment}).success(function(results) {
         if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
           var commentIdx = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
