@@ -367,7 +367,7 @@ app.get('/api/videos/:vid', function(req, res) {
 
   // TODO: make these queries respect permissions
   var videoDetailsQuery = 'select video.* from video where video.id=?';
-  var videoCommentsQuery = 'select comment.* from comment where comment.video_id=?';
+  var videoCommentsQuery = 'select comment.*, author.name from comment join ysuser author on comment.author=author.id where comment.video_id=?';
 
   function makeSuccessCB(cb) {
     return function (r) {

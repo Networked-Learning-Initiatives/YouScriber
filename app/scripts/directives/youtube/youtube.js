@@ -26,8 +26,8 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
       var Videos = $resource('http://gdata.youtube.com/feeds/api/videos/:videoid?v=2&alt=json', {query:'@query'});
       scope.videoMetadata = Videos.get({videoid:scope.code});
       
-      scope.$watch('code', function (newVal) {
-        console.log('video code change noticed in yt directive', newVal);
+      scope.destroyWatch = scope.$watch('code', function (newVal) {
+        // console.log('video code change noticed in yt directive', newVal);
         if (scope.hasOwnProperty('timer')) {
           $interval.cancel(scope.timer);
         }
@@ -49,11 +49,22 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
           if (scope.hasOwnProperty('timer') && scope.timer) {
             $interval.cancel(scope.timer);
           }
+          if (scope.hasOwnProperty('destroyWatch')) {
+            console.log('destroy the watch for the yt video code');
+            scope.destroyWatch();
+          }
+
+          if (scope.hasOwnProperty('atts') && scope.atts.hasOwnProperty('id')) {
+            console.log('have player id will destroy');
+            swfobject.removeSWF(scope.atts.id);
+          }
         });
 
+        // console.log('about to create this friggin video!');
+        // console.log(scope.atts);
         swfobject.createSWF(scope.atts, scope.params, "swf-container");
         scope.timer = $interval(function(){
-          console.log('timer went off');
+          // console.log('timer went off');
           var el = $('#ytPlayer-'+scope.playerId)[0];
           if (el && el.hasOwnProperty('getCurrentTime')){
             var t = el.getCurrentTime();

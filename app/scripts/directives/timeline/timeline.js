@@ -26,6 +26,9 @@ angular.module('youScriberApp').directive('timeline', function($location, $rootS
         var result = 0<=delta && delta < 1.3;
         return result;
       };
+      // scope.$watch('time', function(newValue, oldValue) {
+      //   console.log('timeupdated!', newValue, oldValue);
+      // });
     }
   };
 }).filter('secondsfilter', function() {

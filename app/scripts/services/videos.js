@@ -7,7 +7,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   this.currentVideo = {};
 
   this.getPublicVideos = function (user) {
-    console.log(user);
+    // console.log(user);
 
     var queryParams = {}
     if (user) {
@@ -49,15 +49,11 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     if (User.loggedIn()) {
       params.user = User.user;
     } else {
-      console.log('got logged out!');
+      // console.log('got logged out!');
     }
-    console.log(params);
+    // console.log(params,id);
     $http({method: 'GET', url: '/api/videos/'+id, params:params}).success(function(results) {
-      // consider adding this info instead to the videoService.videos
-      // console.log(results.video[0]);
       videosService.currentVideo = results.video;
-      // console.log(videosService.currentVideo.ytid);
-      console.log(videosService.currentVideo);
     });
   };
 
@@ -71,13 +67,10 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   }
 
   this.addComment = function(timeAndComment) {
-    console.log('Videos::addComment:', timeAndComment);
-    console.log(this.currentVideo);
     var videoForComment = this.currentVideo;
     if (this.currentVideo.hasOwnProperty('comments')) {
       var newComment = {comment:{time:timeAndComment.time, content:timeAndComment.comment, user:User.user.id, video:this.currentVideo.id}};
       $http({method: 'GET', url: '/api/comment/new', params:newComment}).success(function(results) {
-        console.log(results);
         if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
           var commentIdx = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
           if (commentIdx >= 0) {
@@ -88,7 +81,11 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
         }
       });
       this.currentVideo.comments.push(newComment.comment);
-      console.log(this.currentVideo.comments);
+      for (var i=0; i<this.videos.length; i++) {
+        if (this.currentVideo.id == this.videos[i].id) {
+          this.videos[i].comments++;
+        }
+      }
     }
   };
 
