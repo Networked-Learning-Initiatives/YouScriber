@@ -1,5 +1,5 @@
 <div id="timeline" ng-style="{width: width+'px'}" ng-click="seekToPosition($event)">
-  <div class="timepoint" ng-repeat="comment in comments" ng-style="{left:Math.floor(comment.time/duration*width)+'px'}" ng-click="seekToComment(comment.time, $event)" title="{{comment.time | secondsfilter}}" popover="{{comment.time | secondsfilter}} - {{comment.content}}" popover-trigger="mouseenter" ng-class="{'current-timeline-comment':isCurrentComment(comment)}"></div>
+  <div class="timepoint" ng-repeat="comment in comments" ng-style="{left:Math.floor(comment.time/duration*width)+'px'}" ng-click="seekToComment(comment.time, $event)" title="{{comment.time | secondsfilter}}" popover="{{comment.time | secondsfilter}} - {{comment.content}}" popover-placement="right" popover-trigger="mouseenter" ng-class="{'current-timeline-comment':isCurrentComment(comment)}"></div>
   <timeline-circle time="time" duration="duration" width="width"></timeline-circle>
      <!-- <div class="img"> <img src="images/seekBar_circle.png" alt="seekBarCircle" width="20" height="20"/></div> -->
 </div>
