@@ -347,3 +347,15 @@ div.img {
 tr.comment.active-comment td {
   border-color: red;
 }
+
+.panel.settings-modal {
+  margin-bottom: 0;
+}
+
+.panel.settings-modal .panel-heading {
+  min-height: 38px;
+}
+
+i.fa.fa-times {
+  cursor: pointer;
+}
