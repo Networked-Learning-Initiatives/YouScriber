@@ -1,1 +1,56 @@
-<p>COOL</p>
+<div class="panel panel-primary settings-modal">
+  <div class="panel-heading">
+    <h2 class="panel-title pull-left" ng-attr-title="Control Video Permissions">Control Video Permissions</h2>
+    <i class="fa fa-times pull-right" ng-click="dismiss()"></i>
+  </div>
+  <div class="panel-body">
+    <p>{{videoService.currentVideo}}</p>
+    <p>{{videoService.currentVideo.permissions.users}}</p>
+    <p>{{keys(videoService.currentVideo.permissions.users)}}</p>
+    <p>{{videoService.currentVideo.permissions.users &&  keys(videoService.currentVideo.permissions.users).length>0}}</p>
+    <form action="" class="form-horizontal">
+      <div class="form-group">
+        <h5>Users with Privileges</h5>
+        <table class="table" ng-show="videoService.currentVideo.permissions.users &&  keys(videoService.currentVideo.permissions.users).length>0">
+          <tr>
+            <th>User</th>
+            <th>View</th>
+            <th>Add</th>
+            <th>Edit</th>
+            <th>Delete</th>
+            <th>Revoke all permissions</th>
+          </tr>
+          <tr ng-repeat="(user, permissions) in videoService.currentVideo.permissions.users">
+            <td>{{user}}</td>
+            <td><input type="checkbox" ng-model="permissions.read"></td>
+            <td><input type="checkbox" ng-model="permissions.author"></td>
+            <td><input type="checkbox" ng-model="permissions.edit"></td>
+            <td><input type="checkbox" ng-model="permissions.delete"></td>
+            <td><button class="btn btn-danger">Revoke</button></td>
+          </tr>
+        </table>
+        <label for="username" class="col-sm-2 control-label">Add New User</label>
+        <div class="col-sm-5">
+          <input type="text" ng-model="usernameSelected" placeholder="Enter a username to give them permissions for this video" typeahead="username for username in getUsernames($viewValue)" typeahead-loading="loadingUsernames" class="form-control">
+          <i ng-show="loadingMatchingUsernames" class="fa fa-refresh"></i>
+        </div>
+        <div class="col-sm-5">
+          <label class="checkbox-inline">
+            <input type="checkbox" id="userCanViewComments" ng-model="userCanViewComments">View
+          </label>
+          <label class="checkbox-inline">
+            <input type="checkbox" id="userCanAddComments" ng-model="userCanAddComments">Add
+          </label>
+          <label class="checkbox-inline">
+            <input type="checkbox" id="userCanEditComments" ng-model="userCanEditComments">Edit
+          </label>
+          <label class="checkbox-inline">
+            <input type="checkbox" id="userCanDeleteComments" ng-model="userCanDeleteComments">Delete
+          </label>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <!-- <div class="panel-footer">buttons</div> -->
+</div>
