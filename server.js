@@ -368,11 +368,32 @@ app.get('/api/videos/:vid', function(req, res) {
   // TODO: make these queries respect permissions
   var videoDetailsQuery = 'select video.* from video where video.id=?';
   var videoCommentsQuery = 'select comment.*, author.name from comment join ysuser author on comment.author=author.id where comment.video_id=?';
+  var videoUserPermissionsQuery = 'select p.name as permission, u.name as entity from user_privilege up join ysuser u on u.id=up.ysuser join permission p on p.id=up.permission where video=?';
+  var videoGroupPermissionsQuery = 'select p.name as permission, g.title as entity from group_privilege gp join ysgroup g on g.id=gp.ysgroup join permission p on p.id=gp.permission where video=?';
+  var videoOrgPermissionsQuery = 'select p.name as permission, org.title as entity from organization_privilege op join organization org on org.id=op.organization join permission p on p.id=op.permission where video=?';
 
   function makeSuccessCB(cb) {
     return function (r) {
       cb(null, r);
     };
+  }
+
+  function aggregatePermissions (permissions) {
+    var resultingPermissions = {};
+    permissions.forEach(function(p){
+      if (resultingPermissions.hasOwnProperty(p.entity)) {
+        resultingPermissions[p.entity][p.permission]=true;
+      } else {
+        resultingPermissions[p.entity] = {
+          read: false,
+          author: false, 
+          edit: false, 
+          delete: false
+        };
+        resultingPermissions[p.entity][p.permission]=true;
+      }
+    });
+    return resultingPermissions;
   }
 
   async.parallel([function(cb) {
@@ -382,6 +403,18 @@ app.get('/api/videos/:vid', function(req, res) {
   }, function(cb) {
 
     executeQuery(videoCommentsQuery, [req.params.vid], makeSuccessCB(cb), cb);
+
+  }, function(cb) {
+
+    executeQuery(videoUserPermissionsQuery, [req.params.vid], makeSuccessCB(cb), cb);
+
+  }, function(cb) {
+
+    executeQuery(videoGroupPermissionsQuery, [req.params.vid], makeSuccessCB(cb), cb);
+
+  }, function(cb) {
+
+    executeQuery(videoOrgPermissionsQuery, [req.params.vid], makeSuccessCB(cb), cb);
 
   }], function(error, results) {
 
@@ -396,6 +429,11 @@ app.get('/api/videos/:vid', function(req, res) {
         console.log('results', results);
         var video = results[0][0];
         video.comments = results[1];
+        video.permissions = {
+          users: aggregatePermissions(results[2]),
+          groups: aggregatePermissions(results[3]),
+          organizations: aggregatePermissions(results[4])
+        }
         console.log('video to be sent to client:');
         console.log(video);
         res.status(200).json({video:video});
@@ -493,6 +531,15 @@ app.post('/api/group', function (req, res) {
     var errorMessage = 'title, description, and user are all required to create and group';
     res.status(400).send(errorMessage);
   }
+});
+
+app.get('/api/users/:infix', function(req, res) {
+  var findUsers = "select * from ysuser where name like ?";
+  executeQuery(findUsers, ['%'+req.params.infix+'%'], function(users) {
+    res.status(200).json(users);
+  }, function(errorMessage) {
+    res.status(204).send(errorMessage);
+  });
 });
 
 app.use(express.static(__dirname + '/app'));
