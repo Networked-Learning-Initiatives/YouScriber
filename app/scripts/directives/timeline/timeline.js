@@ -1,4 +1,4 @@
-angular.module('youScriberApp').directive('timeline', function($location, $rootScope) {
+angular.module('youScriberApp').directive('timeline', function($location, $rootScope, Player) {
   return {
     restrict: 'E',
     scope: { 
@@ -17,8 +17,8 @@ angular.module('youScriberApp').directive('timeline', function($location, $rootS
       };
 
       scope.seekToPosition = function(evt){
-        console.log(evt);
-
+        console.log(evt.offsetX);
+        Player.seekTo((evt.offsetX/scope.width)*scope.duration);
       };
 
       scope.isCurrentComment = function(comment){

@@ -16,12 +16,12 @@ angular.module('youScriberApp').directive('timelineCircle', function($document, 
 
       scope.style = {
         top: 0,
-        left: '50px',
+        left: 0 - (iElement.width()/2),
       };
 
       iElement.on('mousedown', function(event) {
       // Prevent default dragging of selected content
-      isDragging = true;
+        isDragging = true;
         event.preventDefault();
         startX = event.pageX - x;
         // startY = event.pageY - y;
@@ -32,20 +32,22 @@ angular.module('youScriberApp').directive('timelineCircle', function($document, 
       function mousemove(event) {
         // y = event.pageY - startY;
         x = event.pageX - startX;
+        if (x > scope.width) {
+          x = scope.width;
+        }
+        if (x < 0) {
+          x = 0;
+        }
         iElement.css({
-          // top: y + 'px',
-          left:  x + 'px'
+          left:  x - (iElement.width()/2) + 'px' 
         });
       }
 
       function mouseup() {
         isDragging=false;
-        
+        Player.seekTo((x/scope.width)*scope.duration);
         $document.off('mousemove', mousemove);
         $document.off('mouseup', mouseup);
-
-
-
         console.log(iElement.position());
       }
 
@@ -68,14 +70,18 @@ angular.module('youScriberApp').directive('timelineCircle', function($document, 
       //   var result = 0<=delta && delta < 1.3;
       //   return result;
       // };
+
+      // Auto-scrolls seekBar circle in sync with video.
       scope.$watch('time', function(newValue, oldValue) {
-        // console.log(newValue);
-        // console.log(scope.duration);
-        // console.log(newValue/scope.duration);
-        // console.log(iElement.position());
-        // iElement.position(newValue, 0);
+        //console.log(newValue);
+        //console.log(scope.duration);
+        //console.log(newValue/scope.duration);
+        //console.log(iElement.position
+        //console.log(iElement.width()); 
+        iElement.position(newValue, oldValue);
+        
         if (!isDragging) {
-          scope.style.left=newValue/scope.duration*scope.width+'px';
+          scope.style.left=newValue/scope.duration*scope.width - (iElement.width()/2) +'px';
         }
       });
     }
