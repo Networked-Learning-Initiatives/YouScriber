@@ -2,6 +2,7 @@ insert into permission (name) values ('read');
 insert into permission (name) values ('author');
 insert into permission (name) values ('edit');
 insert into permission (name) values ('delete');
+insert into permission (name) values ('admin');
 
 insert into ysuser (name,pwhash,email) values ('tgm', '8e7b3576e667ac62f55d22f7d9fd23ba', 'tgm@vt.edu');
 

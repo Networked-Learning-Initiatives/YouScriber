@@ -4,53 +4,126 @@
     <i class="fa fa-times pull-right" ng-click="dismiss()"></i>
   </div>
   <div class="panel-body">
-    <p>{{videoService.currentVideo}}</p>
-    <p>{{videoService.currentVideo.permissions.users}}</p>
-    <p>{{keys(videoService.currentVideo.permissions.users)}}</p>
-    <p>{{videoService.currentVideo.permissions.users &&  keys(videoService.currentVideo.permissions.users).length>0}}</p>
-    <form action="" class="form-horizontal">
-      <div class="form-group">
-        <h5>Users with Privileges</h5>
-        <table class="table" ng-show="videoService.currentVideo.permissions.users &&  keys(videoService.currentVideo.permissions.users).length>0">
-          <tr>
-            <th>User</th>
-            <th>View</th>
-            <th>Add</th>
-            <th>Edit</th>
-            <th>Delete</th>
-            <th>Revoke all permissions</th>
-          </tr>
-          <tr ng-repeat="(user, permissions) in videoService.currentVideo.permissions.users">
-            <td>{{user}}</td>
-            <td><input type="checkbox" ng-model="permissions.read"></td>
-            <td><input type="checkbox" ng-model="permissions.author"></td>
-            <td><input type="checkbox" ng-model="permissions.edit"></td>
-            <td><input type="checkbox" ng-model="permissions.delete"></td>
-            <td><button class="btn btn-danger">Revoke</button></td>
-          </tr>
-        </table>
-        <label for="username" class="col-sm-2 control-label">Add New User</label>
-        <div class="col-sm-5">
-          <input type="text" ng-model="usernameSelected" placeholder="Enter a username to give them permissions for this video" typeahead="username for username in getUsernames($viewValue)" typeahead-loading="loadingUsernames" class="form-control">
-          <i ng-show="loadingMatchingUsernames" class="fa fa-refresh"></i>
+    <div class="container">
+      <!-- <p>{{video.permissions}}</p>
+      <p>{{initialPermissions}}</p> -->
+      <form action="" class="form-horizontal">
+
+        <!-- User Privileges -->
+        <div class="form-group">
+          <h5>Users with Privileges</h5>
+          <table class="table">
+            <tr>
+              <th>User</th>
+              <th>View</th>
+              <th>Add</th>
+              <th>Edit</th>
+              <th>Delete</th>
+              <th>Admin.</th>
+              <th>Revoke all permissions</th>
+            </tr>
+            <tr ng-repeat="(user, permissions) in video.permissions.users">
+              <td>{{user}}</td>
+              <td><input type="checkbox" ng-model="permissions.read"></td>
+              <td><input type="checkbox" ng-model="permissions.author"></td>
+              <td><input type="checkbox" ng-model="permissions.edit"></td>
+              <td><input type="checkbox" ng-model="permissions.delete"></td>
+              <td><input type="checkbox" ng-model="permissions.admin"></td>
+              <td><button class="btn btn-danger" ng-click="revokeAll('users', user)">Revoke</button></td>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" ng-model="usernameSelected" placeholder="Add new user" typeahead="user as user.name for user in getUsernames($viewValue)" typeahead-loading="loadingUsernames" class="form-control" typeahead-on-select="addNewUserPermission()">
+                <i ng-show="loadingMatchingUsernames" class="fa fa-refresh"></i>
+              </td>
+              <td><input type="checkbox" ng-model="newUserPermissions.read"></td>
+              <td><input type="checkbox" ng-model="newUserPermissions.author"></td>
+              <td><input type="checkbox" ng-model="newUserPermissions.edit"></td>
+              <td><input type="checkbox" ng-model="newUserPermissions.delete"></td>
+              <td><input type="checkbox" ng-model="newUserPermissions.admin"></td>
+              <td></td>
+            </tr>
+          </table>
+          
         </div>
-        <div class="col-sm-5">
-          <label class="checkbox-inline">
-            <input type="checkbox" id="userCanViewComments" ng-model="userCanViewComments">View
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" id="userCanAddComments" ng-model="userCanAddComments">Add
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" id="userCanEditComments" ng-model="userCanEditComments">Edit
-          </label>
-          <label class="checkbox-inline">
-            <input type="checkbox" id="userCanDeleteComments" ng-model="userCanDeleteComments">Delete
-          </label>
-          <button type="submit" class="btn btn-primary">Submit</button>
+        
+        <!-- Group Privileges -->
+        <div class="form-group">
+          <h5>Groups with Privileges</h5>
+          <table class="table">
+            <tr>
+              <th>Group</th>
+              <th>View</th>
+              <th>Add</th>
+              <th>Edit</th>
+              <th>Delete</th>
+              <th>Admin.</th>
+              <th>Revoke all permissions</th>
+            </tr>
+            <tr ng-repeat="(groupTitle, permissions) in video.permissions.groups">
+              <td>{{groupTitle}}</td>
+              <td><input type="checkbox" ng-model="permissions.read"></td>
+              <td><input type="checkbox" ng-model="permissions.author"></td>
+              <td><input type="checkbox" ng-model="permissions.edit"></td>
+              <td><input type="checkbox" ng-model="permissions.delete"></td>
+              <td><input type="checkbox" ng-model="permissions.admin"></td>
+              <td><button class="btn btn-danger" ng-click="revokeAll('groups', groupTitle)">Revoke</button></td>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" ng-model="groupSelected" placeholder="Add new group" typeahead="group as group.title for group in getGroups($viewValue)" typeahead-loading="loadingUGroups" class="form-control" typeahead-on-select="addNewGroupPermission()">
+                <i ng-show="loadingMatchingGroups" class="fa fa-refresh"></i>
+              </td>
+              <td><input type="checkbox" ng-model="newGroupPermissions.read"></td>
+              <td><input type="checkbox" ng-model="newGroupPermissions.author"></td>
+              <td><input type="checkbox" ng-model="newGroupPermissions.edit"></td>
+              <td><input type="checkbox" ng-model="newGroupPermissions.delete"></td>
+              <td><input type="checkbox" ng-model="newGroupPermissions.admin"></td>
+              <td></td>
+            </tr>
+          </table>
+          
         </div>
-      </div>
-    </form>
+
+        <!-- Org Privileges -->
+        <div class="form-group">
+          <h5>Organizations with Privileges</h5>
+          <table class="table">
+            <tr>
+              <th>Organization</th>
+              <th>View</th>
+              <th>Add</th>
+              <th>Edit</th>
+              <th>Delete</th>
+              <th>Admin.</th>
+              <th>Revoke all permissions</th>
+            </tr>
+            <tr ng-repeat="(orgTitle, permissions) in video.permissions.organizations">
+              <td>{{orgTitle}}</td>
+              <td><input type="checkbox" ng-model="permissions.read"></td>
+              <td><input type="checkbox" ng-model="permissions.author"></td>
+              <td><input type="checkbox" ng-model="permissions.edit"></td>
+              <td><input type="checkbox" ng-model="permissions.delete"></td>
+              <td><input type="checkbox" ng-model="permissions.admin"></td>
+              <td><button class="btn btn-danger" ng-click="revokeAll('organizations', orgTitle)">Revoke</button></td>
+            </tr>
+            <tr>
+              <td>
+                <input type="text" ng-model="orgSelected" placeholder="Add new organization" typeahead="org as org.title for org in getOrgs($viewValue)" typeahead-loading="loadingUOrgs" class="form-control" typeahead-on-select="addNewOrgPermission()">
+                <i ng-show="loadingMatchingOrgs" class="fa fa-refresh"></i>
+              </td>
+              <td><input type="checkbox" ng-model="newOrgPermissions.read"></td>
+              <td><input type="checkbox" ng-model="newOrgPermissions.author"></td>
+              <td><input type="checkbox" ng-model="newOrgPermissions.edit"></td>
+              <td><input type="checkbox" ng-model="newOrgPermissions.delete"></td>
+              <td><input type="checkbox" ng-model="newOrgPermissions.admin"></td>
+              <td></td>
+            </tr>
+          </table>
+          
+        </div>
+      </form>
+    </div>
   </div>
-  <!-- <div class="panel-footer">buttons</div> -->
+  <div class="panel-footer"><button type="submit" class="btn btn-primary pull-right" ng-click="save()">Save all changes</button></div>
 </div>

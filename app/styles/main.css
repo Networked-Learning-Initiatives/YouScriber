@@ -356,6 +356,10 @@ tr.comment.active-comment td {
   min-height: 38px;
 }
 
+ .panel.settings-modal .panel-footer {
+  min-height: 55px;
+ }
+
 i.fa.fa-times {
   cursor: pointer;
 }

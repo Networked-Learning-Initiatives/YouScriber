@@ -46,16 +46,23 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   };
 
   this.getVideo = function(id) {
-    var params = {};
-    if (User.loggedIn()) {
-      params.user = User.user;
-    } else {
-      // console.log('got logged out!');
-    }
-    // console.log(params,id);
-    $http({method: 'GET', url: '/api/videos/'+id, params:params}).success(function(results) {
-      videosService.currentVideo = results.video;
+    this.currentVideo = $q(function (resolve, reject) {
+      var params = {};
+      if (User.loggedIn()) {
+        params.user = User.user;
+      } 
+      $http({method: 'GET', url: '/api/videos/'+id, params:params})
+        .success(function (results) {
+          videosService.currentVideo = results.video;
+          console.log('resolving', videosService.currentVideo);
+          resolve(videosService.currentVideo);
+        })
+        .catch(function (error) {
+          console.error('error getting video by id', id, error);
+          reject(error);
+        });
     });
+    return this.currentVideo;
   };
 
   function findCommentByTimeAndContent (time, content) {
@@ -90,6 +97,45 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
         }
       }
     }
+  };
+
+  this.removeEntitiesPermissionsFromVideo = function (vid, entities, permGroup) {
+    console.log('removeEntitiesPermissionsFromVideo::vid, entities, permGroup', vid, entities, permGroup);
+    return $q(function (resolve, reject) {
+      $http.post('/api/video/'+vid+'/entity-drop', {entities:entities, user:User.user.id, permGroup:permGroup})
+      .success(function () {
+        resolve(true);
+      })
+      .error(function (error) {
+        reject(error);
+      });
+    });
+  };
+
+  this.updateEntityPermissionsToVideo = function (entity, permGroup, video, permissions) {
+    console.log('updateEntityPermissionsToVideo::entity, permGroup, video, permissions:', entity, permGroup, video, permissions);
+    return $q(function (resolve, reject) {
+      $http.post('/api/video/'+video+'/entity-mod', {entity:entity, user:User.user.id, permissions:permissions, permGroup:permGroup})
+      .success(function () {
+        resolve(true);
+      })
+      .error(function (error) {
+        reject(error);
+      });
+    });
+  };
+
+  this.addEntityPermissionsToVideo = function (entity, permGroup, video, permissions) {
+    console.log('addEntityPermissionsToVideo::entity, permGroup, video, permissions:', entity, permGroup, video, permissions);
+    return $q(function (resolve, reject) {
+      $http.post('/api/video/'+video+'/entity-add', {entity:entity, user:User.user.id, permissions:permissions, permGroup:permGroup})
+      .success(function () {
+        resolve(true);
+      })
+      .error(function (error) {
+        reject(error);
+      });
+    });
   };
 
 });

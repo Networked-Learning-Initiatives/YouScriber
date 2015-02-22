@@ -33,46 +33,14 @@ angular.module('youScriberApp', [
         })
           .state('video.comments.settings', {
             url: '/settings',
-            onEnter: ['$stateParams', '$state', '$modal', '$resource', 'Videos', function($stateParams, $state, $modal, $resource, Videos, $http) {
+            onEnter: ['$stateParams', '$state', '$modal', '$resource', 'Videos', '$http', 'User', function($stateParams, $state, $modal, $resource, Videos, $http, User) {
               $modal.open({
                   size: 'lg',
                   templateUrl: "views/video/settings.html",
                   resolve: {
-                    video: function() { Videos.getVideo($stateParams.videoId); }
+                    video: function() { return Videos.getVideo($stateParams.videoId); }
                   },
-                  controller: ['$scope', 'video', '$http', function($scope, video, $http) {
-                    $scope.dismiss = function() {
-                      $scope.$dismiss();
-                    };
-
-                    $scope.getUsernames = function (query) {
-                      console.log('getUsernames::query:', query);
-                      return $http.get('/api/users/'+query)
-                        .then(function(response){
-                          console.log(response);
-                          // return [];
-                          var results = response.data.map(function(thisUser){
-                            console.log(thisUser);
-                            console.log(thisUser.name);
-                            var uname = thisUser.name;
-                            return uname; //TODO: eventually return icon/avatar here?
-                          });
-                          console.log(results);
-                          return results;
-                        });
-                    };
-
-                    $scope.save = function() {
-                      console.log('save the settings for the video');
-                      // item.update().then(function() {
-                      //   $scope.$close(true);
-                      // });
-                    };
-
-                    $scope.keys = Object.keys;
-
-                    $scope.videoService = Videos;
-                  }]
+                  controller: 'VideoSettings'
               }).result.finally(function() {
                   $state.go('^');
               });

@@ -4,7 +4,8 @@ var app = express();
 var mysql = require('mysql');
 var http = require('http').Server(app);
 var bodyParser = require('body-parser')
-var async = require('async');
+var async = require('async'); //TODO: convert to RSVP
+var RSVP = require('rsvp');
 app.use( bodyParser.json() );       // to support JSON-encoded bodies
 app.use( bodyParser.urlencoded({extended:true}) ); // to support URL-encoded bodies
 
@@ -18,6 +19,14 @@ var connection = mysql.createConnection({
     database: 'youscriber'
 });
 connection.connect();
+
+var permissionIds = {
+  'read': 1,
+  'author': 2,
+  'edit': 3,
+  'delete': 4,
+  'admin': 5
+}
 
 
 
@@ -56,6 +65,22 @@ app.use(express.static(__dirname + '/app'));
 
 var port = 3333;
 
+function query (sql, params) {
+  var promise = new RSVP.Promise(function (resolve, reject) {
+    console.log(sql, params);
+    connection.query(sql, params, function (err, result) {
+      if(err) {
+        console.error('sql error in query', err);
+        reject(err);
+      }
+      else {
+        console.log('query success:', result);
+        resolve(result);
+      }
+    });
+  });
+  return promise;
+}
 
 function executeQuery (sql, params, success, failure) {
   console.log(sql, params);
@@ -169,7 +194,7 @@ app.post('/api/user/login', function (req, res) {
     executeQuery(checkLogin, [req.body.user, req.body.pwHash], 
       function (loginResult){
         console.log('login success', loginResult);
-        if (loginResult.rowCount == 0) {
+        if (loginResult.length == 0) {
           res.status(500).json({msg:'user or password incorrect'});
         }
         async.parallel([getGroups(loginResult[0].id), getOrgs(loginResult[0].id)], function(error, results){
@@ -368,9 +393,9 @@ app.get('/api/videos/:vid', function(req, res) {
   // TODO: make these queries respect permissions
   var videoDetailsQuery = 'select video.* from video where video.id=?';
   var videoCommentsQuery = 'select comment.*, author.name from comment join ysuser author on comment.author=author.id where comment.video_id=?';
-  var videoUserPermissionsQuery = 'select p.name as permission, u.name as entity from user_privilege up join ysuser u on u.id=up.ysuser join permission p on p.id=up.permission where video=?';
-  var videoGroupPermissionsQuery = 'select p.name as permission, g.title as entity from group_privilege gp join ysgroup g on g.id=gp.ysgroup join permission p on p.id=gp.permission where video=?';
-  var videoOrgPermissionsQuery = 'select p.name as permission, org.title as entity from organization_privilege op join organization org on org.id=op.organization join permission p on p.id=op.permission where video=?';
+  var videoUserPermissionsQuery = 'select p.name as permission, u.name as entity, u.id as entity_id from user_privilege up join ysuser u on u.id=up.ysuser join permission p on p.id=up.permission where video=?';
+  var videoGroupPermissionsQuery = 'select p.name as permission, g.title as entity, g.id as entity_id from group_privilege gp join ysgroup g on g.id=gp.ysgroup join permission p on p.id=gp.permission where video=?';
+  var videoOrgPermissionsQuery = 'select p.name as permission, org.title as entity, org.id as entity_id from organization_privilege op join organization org on org.id=op.organization join permission p on p.id=op.permission where video=?';
 
   function makeSuccessCB(cb) {
     return function (r) {
@@ -385,10 +410,12 @@ app.get('/api/videos/:vid', function(req, res) {
         resultingPermissions[p.entity][p.permission]=true;
       } else {
         resultingPermissions[p.entity] = {
+          id: p.entity_id,
           read: false,
           author: false, 
           edit: false, 
-          delete: false
+          delete: false,
+          admin: false,
         };
         resultingPermissions[p.entity][p.permission]=true;
       }
@@ -426,7 +453,7 @@ app.get('/api/videos/:vid', function(req, res) {
     else {
       console.log('videos/vid else');
       if (results && (!results.hasOwnProperty('length')||(results.length>0 && results[0] && typeof results[0] != 'undefined'))) {
-        console.log('results', results);
+        console.log('\n\n\n\n\n\n\n\n\nresults\n\n\n\n', results);
         var video = results[0][0];
         video.comments = results[1];
         video.permissions = {
@@ -534,12 +561,200 @@ app.post('/api/group', function (req, res) {
 });
 
 app.get('/api/users/:infix', function(req, res) {
-  var findUsers = "select * from ysuser where name like ?";
+  var findUsers = "select id, name from ysuser where name like ?"; //TODO: eventually also grab their avatar?/icon?
   executeQuery(findUsers, ['%'+req.params.infix+'%'], function(users) {
     res.status(200).json(users);
   }, function(errorMessage) {
     res.status(204).send(errorMessage);
   });
+});
+
+app.get('/api/groups/:userId/:infix', function(req, res) {
+  var findgroups = "select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where g.title like ? and gm.ysuser=?"; //TODO: eventually also grab their avatar?/icon?
+  executeQuery(findgroups, ['%'+req.params.infix+'%', req.params.userId], function(groups) {
+    res.status(200).json(groups);
+  }, function(errorMessage) {
+    res.status(204).send(errorMessage);
+  });
+});
+
+app.get('/api/orgs/:userId/:infix', function(req, res) {
+  var findOrgs = "select o.id, o.title from organization o join organization_member om on om.organization=o.id where o.title like ? and om.ysuser=?"; //TODO: eventually also grab their avatar?/icon?
+  executeQuery(findOrgs, ['%'+req.params.infix+'%', req.params.userId], function(orgs) {
+    res.status(200).json(orgs);
+  }, function(errorMessage) {
+    res.status(204).send(errorMessage);
+  });
+});
+
+function userCanAdmin(user, video) {
+  var userItselfCanAdmin = 'select true from user_privilege where ysuser=? and video=? and permission=5';
+  var userInAGroupCanAdmin = 'select true from group_privilege gp join group_member gm on gm.ysgroup=gp.ysgroup where gm.ysuser=? and gp.video=? and gp.permission=5';
+  var userInAnOrgCanAdmin = 'select true from organization_privilege op join organization_member om on om.organization=op.organization where om.ysuser=? and op.video=? and op.permission=5';
+
+  return RSVP.all([
+    query(userItselfCanAdmin, [user, video]), 
+    query(userInAGroupCanAdmin, [user, video]), 
+    query(userInAnOrgCanAdmin, [user, video])
+  ])
+    .then(function (canAdminResults) {
+      console.log(canAdminResults);
+      if (canAdminResults[0].length > 0 || canAdminResults[1].length > 0 || canAdminResults[2].length > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+}
+
+function dropAllEntitiesPermissionsFromVideo (entities, video, permGroup) {
+  var q = 'delete from ?? where video=? and ??=?';
+  var table, col, findCol;
+  if (permGroup == 'users') {
+    table = 'user_privilege';
+    col = 'ysuser';
+    
+    findCol = 'name';
+  } else if (permGroup == 'groups') {
+    table = 'group_privilege';
+    col = 'ysgroup';
+    
+    findCol = 'name';
+  } else if (permGroup == 'organizations') {
+    table = 'organization_privilege';
+    col = 'organization';
+    
+    findCol = 'name';
+  }
+  // var getEntityId = 'select id from ? where ? = ?';
+
+  console.log('dropAllEntitiesPermissionsFromVideo (entities, video, permGroup):', entities, video, permGroup);
+
+  return RSVP.all(entities.map(function (entity) {
+    // return query(getEntityId, [col, findCol, entity])
+    //   .then(function (entityIdResults) {
+        // if (entityIdResults.length > 0) {
+          console.log(mysql.format(q, [table, video, col, entity.id]));
+          return query(q, [table, video, col, entity.id]);
+        // } else {
+          // failed?
+        // }
+      // });
+  }));
+}
+
+app.post('/api/video/:vid/entity-drop', function (req, res) {
+  if (req.body.hasOwnProperty('entities') 
+    && req.body.hasOwnProperty('user') 
+    && req.body.hasOwnProperty('permGroup')) {
+    // check that at least right now this user somehow has admin permissions
+      userCanAdmin(req.body.user, req.params.vid)
+        .then(function (canAdmin) {
+          if (canAdmin) {
+            dropAllEntitiesPermissionsFromVideo(req.body.entities, req.params.vid, req.body.permGroup).then(function () {
+              res.status(200).send('dropped permissions');
+            });
+          } else {
+            res.status(403).send('not allowed to admin');
+          }
+        });
+  } else {
+    res.status(400).send("entities, user, and permGroup required in body");
+  }
+});
+
+function addEntityPermissionsForVideo(entity, video, permGroup, permissions) {
+  var table, col;
+  if (permGroup == 'users') {
+    table = 'user_privilege';
+    col = 'ysuser';
+  } else if (permGroup == 'groups') {
+    table = 'group_privilege';
+    col = 'ysgroup';
+  } else if (permGroup == 'organizations') {
+    table = 'organization_privilege';
+    col = 'organization';
+  }
+
+  console.log('addEntityPermissionsForVideo(entity, video, permGroup, permissions):', entity, video, permGroup, permissions);
+  return RSVP.all(permissions.map(function (permission) {
+    console.log(permission);
+    var addPermQuery = 'insert into ?? (??, video, permission) values (?, ?, ?)';
+    console.log(mysql.format(addPermQuery, [table, col, entity, video, permissionIds[Object.keys(permission)[0]]]));
+    return query(addPermQuery, [table, col, entity, video, permissionIds[Object.keys(permission)[0]]]);
+  }))
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+app.post('/api/video/:vid/entity-add', function (req, res) {
+  if (req.body.hasOwnProperty('entity') 
+    && req.body.hasOwnProperty('user') 
+    && req.body.hasOwnProperty('permGroup')) {
+
+      userCanAdmin(req.body.user, req.params.vid)
+        .then(function (canAdmin) {
+          if (canAdmin) {
+            addEntityPermissionsForVideo(req.body.entity.id, req.params.vid, req.body.permGroup, req.body.permissions).then(function () {
+              res.status(200).send('added permissions');
+            });
+          } else {
+            res.status(403).send();
+          }
+        });
+  } else {
+    res.status(400).send("entity, user, permGroup, and permissions required in body");
+  }
+});
+
+function updateEntityPermissionsForVideo(entity, video, permGroup, permissions) {
+  var table, col;
+  if (permGroup == 'users') {
+    table = 'user_privilege';
+    col = 'ysuser';
+  } else if (permGroup == 'groups') {
+    table = 'group_privilege';
+    col = 'ysgroup';
+  } else if (permGroup == 'organizations') {
+    table = 'organization_privilege';
+    col = 'organization';
+  }
+
+  console.log('updateEntityPermissionsForVideo(entity, video, permGroup, permissions):', entity, video, permGroup, permissions);
+
+  return RSVP.all(permissions.map(function (permission) {
+    var updateQuery, updateParams;
+    if (permission[Object.keys(permission)[0]]) {
+      updateQuery = 'insert into ?? (??, video, permission) values (?, ?, ?)';
+      updateParams = [table, col, entity, video, permissionIds[Object.keys(permission)[0]]];
+    } else {
+      updateQuery = 'delete from ?? where ??=? and permission=? and video=?';
+      updateParams = [table, col, entity, permissionIds[Object.keys(permission)[0]], video];
+    }
+    console.log(mysql.format(updateQuery, updateParams));
+    return query(updateQuery, updateParams);
+  }));
+}
+
+app.post('/api/video/:vid/entity-mod', function (req, res) {
+  if (req.body.hasOwnProperty('entity') 
+    && req.body.hasOwnProperty('user') 
+    && req.body.hasOwnProperty('permGroup')) {
+
+      userCanAdmin(req.body.user, req.params.vid)
+        .then(function (canAdmin) {
+          if (canAdmin) {
+            updateEntityPermissionsForVideo(req.body.entity.id, req.params.vid, req.body.permGroup, req.body.permissions).then(function () {
+              res.status(200).send('modded permissions');
+            });
+          } else {
+            res.status(403).send();
+          }
+        });
+  } else {
+    res.status(400).send("entity, user, permGroup, and permissions required in body");
+  }
 });
 
 app.use(express.static(__dirname + '/app'));
