@@ -1,9 +1,11 @@
-<div class="panel panel-primary video-panel">
-  <div class="panel-heading">
-    <h3 class="panel-title" title="{{video.title}}">{{video.title}}</h3>
+<a ui-sref="video.comments({videoId:video.id})">
+  <div class="panel panel-primary video-panel">
+    <div class="panel-heading">
+      <h3 class="panel-title" title="{{video.title}}">{{video.title}}</h3>
+    </div>
+    <div class="panel-body">
+      <img ng-src="{{video.thumbnail}}" alt="">
+    </div>
+    <div class="panel-footer">{{video.comments}} comment<span ng-if="video.comments!=1">s</span></div>
   </div>
-  <div class="panel-body">
-    <a ui-sref="video.comments({videoId:video.id})"><img ng-src="{{video.thumbnail}}" alt="">
-  </div>
-  <div class="panel-footer">{{video.comments}} comment<span ng-if="video.comments!=1">s</span></div>
-</div>
+</a>

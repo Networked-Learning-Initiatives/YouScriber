@@ -347,3 +347,29 @@ div.img {
 tr.comment.active-comment td {
   border-color: red;
 }
+
+.panel.settings-modal {
+  margin-bottom: 0;
+}
+
+.panel.settings-modal .panel-heading {
+  min-height: 38px;
+}
+
+ .panel.settings-modal .panel-footer {
+  min-height: 55px;
+ }
+
+i.fa.fa-times {
+  cursor: pointer;
+}
+
+.nav.nav-pills.nav-stacked {
+  float: left;
+  margin-left: -95px;
+}
+
+.tab-content {
+  float:right;
+  margin-right: -50px;
+}

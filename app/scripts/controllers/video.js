@@ -13,7 +13,7 @@ String.prototype.toHHMMSS = function () {
   return time;
 }
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User, Player) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User, Player, $state) {
   $scope.videoId = $stateParams.videoId; //this is the video's id in OUR database
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
@@ -77,6 +77,10 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
     // console.log(comment);
 
     // actually update the server with the new time: comment.time
+  };
+
+  $scope.settings = function() {
+    $state.go('video.comments.settings');
   };
 
 }).filter('timefilter', function() {
