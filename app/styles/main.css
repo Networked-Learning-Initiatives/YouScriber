@@ -363,3 +363,13 @@ tr.comment.active-comment td {
 i.fa.fa-times {
   cursor: pointer;
 }
+
+.nav.nav-pills.nav-stacked {
+  float: left;
+  margin-left: -95px;
+}
+
+.tab-content {
+  float:right;
+  margin-right: -50px;
+}

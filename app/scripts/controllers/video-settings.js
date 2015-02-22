@@ -108,6 +108,8 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
         }
       }
     }
+
+    $scope.dismiss();
   };
 
   $scope.keys = Object.keys;
