@@ -1,6 +1,6 @@
 <div class="row dash body">
   <div ng-class="{'col-md-10':userService.loggedIn(), 'col-md-12':!userService.loggedIn()}">
-    <p class="lead" ng-show="userService.user && userService.user.name && userService.user.name.length>0">Welcome, {{userService.user.name}}</p>
+    <!-- <p class="lead" ng-show="userService.user && userService.user.name && userService.user.name.length>0">Welcome, {{userService.user.name}}</p> -->
 
     <div class="panel panel-primary video-panel new-video" ng-click="newVideo()" ng-show="userService.loggedIn()">
       <div class="panel-heading">

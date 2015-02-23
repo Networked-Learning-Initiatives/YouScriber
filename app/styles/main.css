@@ -114,6 +114,10 @@ body {
   margin-right: 20px;
 }
 
+a.vp-link {
+  margin-right: 20px;
+}
+
 .video-panel:last-child {
   margin-right: 0;
 }
@@ -238,7 +242,7 @@ tr.comment td:first-child {
 }
 
 .video-panel.new-video {
-  margin-left: -4px;
+  /*margin-left: -4px;*/
 }
 
 .youscriber .editable-click, .youscriber a.editable-click {
@@ -372,4 +376,8 @@ i.fa.fa-times {
 .tab-content {
   float:right;
   margin-right: -50px;
+}
+
+.youscriber h1 {
+  margin-top: 0px
 }
