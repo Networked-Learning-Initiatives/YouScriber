@@ -1,11 +1,11 @@
 <div class="row">
-  <div class="col-md-11 body">
+  <div class="col-md-10 body">
     <h1 class="video-title">{{videosService.currentVideo.title}}</h1>
     <!-- <p>{{videosService.currentVideo}}</p>
     <p>{{userService.user}}</p> -->
   </div>
-  <div class="col-md-1 body">
-    <button ng-show="videosService.canAdmin()"class="btn btn-default" ng-click="settings()"><i class="fa fa-cogs"></i>Settings</button>
+  <div class="col-md-2 body">
+    <button ng-show="videosService.canAdmin()"class="btn btn-default pull-right" ng-click="settings()"><i class="fa fa-cogs"></i>Settings</button>
   </div>
 </div>
 <div class="row">

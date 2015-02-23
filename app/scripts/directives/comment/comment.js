@@ -1,4 +1,4 @@
-angular.module('youScriberApp').directive('comment', function ($stateParams, $rootScope, Player, $state) {
+angular.module('youScriberApp').directive('comment', function ($stateParams, $rootScope, Player, $state, Videos, $http) {
   return {
     restrict: 'E',
     scope: { 
@@ -21,6 +21,8 @@ angular.module('youScriberApp').directive('comment', function ($stateParams, $ro
         }
       };
 
+      scope.videosService = Videos;
+
       scope.seekTo = function() {
         // console.log('state.go video.comment with ', scope.timecomment.id);
         scope.playerService.seekTo(scope.timecomment.time);
@@ -28,6 +30,41 @@ angular.module('youScriberApp').directive('comment', function ($stateParams, $ro
       };
 
       scope.scrollIt();
+
+      scope.updateTime = function () {
+        console.log(scope.timecomment);
+        $http.post('/api/comments/' + scope.timecomment.id + '/time', {time: scope.timecomment.time})
+          .success(function (resp) {
+            console.log('time updated');
+          })
+          .error(function (error) {
+            console.error('error updating time', error);
+          });
+      };
+
+      scope.updateContent = function () {
+        console.log(scope.timecomment);
+        $http.post('/api/comments/' + scope.timecomment.id + '/content', {content: scope.timecomment.content})
+          .success(function (resp) {
+            console.log('content updated');
+          })
+          .error(function (error) {
+            console.error('error updating comment content', error);
+          });
+      };
+
+      scope.delete = function () {
+        console.log(scope.timecomment);
+        Videos.currentVideo.comments.splice(scope.idx, 1);
+        $http.post('/api/comments/' + scope.timecomment.id + '/delete', {})
+          .success(function (resp) {
+            console.log('comment deleted');
+          })
+          .error(function (error) {
+            console.error('error deleting comment', error);
+          });
+      };
+
 
       scope.$watch($stateParams.commentId, function(){
         scope.scrollIt();

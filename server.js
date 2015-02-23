@@ -757,6 +757,53 @@ app.post('/api/video/:vid/entity-mod', function (req, res) {
   }
 });
 
+function dropComment (cid) {
+  var dropCommentQuery = 'delete from comment where id=?';
+  return query(dropCommentQuery, [cid]);
+}
+
+app.post('/api/comments/:cid/delete', function (req, res) {
+  dropComment(req.params.cid)
+    .then(function () {
+      res.status(200).send('deleted comment');
+    })
+    .catch(function (error) {
+      res.status(500).send('some problem dropping comment');
+    });
+});
+
+function updateCommentTime (cid, t) {
+  var updateCommentQuery = 'update comment set time=? where id=?';
+  return query(updateCommentQuery, [t, cid]);
+}
+
+
+app.post('/api/comments/:cid/time', function (req, res) {
+  updateCommentTime(req.params.cid, req.body.time)
+    .then(function () {
+      res.status(200).send('updated comment time');
+    })
+    .catch(function (error) {
+      res.status(500).send('some problem updating comment time');
+    });
+});
+
+function updateCommentContent (cid, content) {
+  var updateCommentQuery = 'update comment set content=? where id=?';
+  return query(updateCommentQuery, [content, cid]);
+}
+
+app.post('/api/comments/:cid/content', function (req, res) {
+  updateCommentContent(req.params.cid, req.body.content)
+    .then(function () {
+      res.status(200).send('updated comment content');
+    })
+    .catch(function (error) {
+      res.status(500).send('some problem updating comment content');
+    });
+});
+
+
 app.use(express.static(__dirname + '/app'));
 
 var server = app.listen(port, function () {
