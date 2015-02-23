@@ -298,13 +298,41 @@ function addVideo (response, userId, httpResponse) {
   // console.log('title, duration, thumb', title, duration, thumb);
 
   var insertNewVideoQuery = 'insert into video (title, ytid, owner, thumbnail, duration) values (?, ?, ?, ?, ?)';
-  executeQuery(insertNewVideoQuery, [title, ytid, userId, thumb, duration], function(results){
-    console.log(results);
-    video.id = results.insertId;
-    httpResponse.status(200).json(video);
-  }, function (err) {
-    httpResponse.status(500).send('problem with db query to add video '+err);
-  });
+  query(insertNewVideoQuery, [title, ytid, userId, thumb, duration])
+    .then(function(results) {
+      var permissionValues = Object.keys(permissionIds).map(function (perm) {
+        return permissionIds[perm];
+      });
+      RSVP.all(permissionValues.map(function (permId) {
+        var addPerms = 'insert into user_privilege(ysuser, permission, video) values (?,?,?)';
+        return query(addPerms, [userId, permId, results.insertId]);
+      }))
+        .then(function () {
+          var findUsers = "select id, name from ysuser where name like ?";
+          return query(findUsers, [userId]).then(function (results) {
+            var userPerms = {};
+            userPerms[results[0].name] = {
+              id: results[0].id,
+              read: false,
+              author: false, 
+              edit: false, 
+              delete: false,
+              admin: false,
+            };
+            video.id = results.insertId;
+            video.permissions = {
+              users: userPerms,
+              groups: {},
+              organizations: {}
+            };
+          
+            httpResponse.status(200).json(video);
+          });
+        });
+    })
+    .catch(function (error) {
+      httpResponse.status(500).send('problem with db query to add video '+error);
+    });
 }
 
 app.get('/api/video/new', function(req, res) {
