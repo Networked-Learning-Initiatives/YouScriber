@@ -308,11 +308,11 @@ function addVideo (response, userId, httpResponse) {
         return query(addPerms, [userId, permId, results.insertId]);
       }))
         .then(function () {
-          var findUsers = "select id, name from ysuser where name like ?";
-          return query(findUsers, [userId]).then(function (results) {
+          var findUsers = "select id, name from ysuser where id=?";
+          return query(findUsers, [userId]).then(function (userResults) {
             var userPerms = {};
-            userPerms[results[0].name] = {
-              id: results[0].id,
+            userPerms[userResults[0].name] = {
+              id: userResults[0].id,
               read: false,
               author: false, 
               edit: false, 
@@ -328,6 +328,9 @@ function addVideo (response, userId, httpResponse) {
           
             httpResponse.status(200).json(video);
           });
+        })
+        .catch(function (error) {
+          console.error('error setting new video perms', error);
         });
     })
     .catch(function (error) {

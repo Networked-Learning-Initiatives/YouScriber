@@ -39,15 +39,19 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
       console.log('got logged out!');
     }
     params.ytid = ytid;
-    $http({method: 'GET', url: '/api/video/new', params: params}).success(function (results) {
-      // consider adding this info instead to the videoService.videos
-      console.log(results);
-      videosService.currentVideo = results;
-      // $rootScope.$apply(function(){
-        // $location.path('/video/'+videosService.currentVideo.id);
-      $state.go('video.comments', {videoId: videosService.currentVideo.id});
-      // });
-    });
+    $http({method: 'GET', url: '/api/video/new', params: params})
+      .success(function (results) {
+        // consider adding this info instead to the videoService.videos
+        console.log(results);
+        videosService.currentVideo = results;
+        // $rootScope.$apply(function(){
+          // $location.path('/video/'+videosService.currentVideo.id);
+        $state.go('video.comments', {videoId: videosService.currentVideo.id});
+        // });
+      })
+      .error(function (error) {
+        console.log('error creating new video', error);
+      });
   };
 
   this.getVideo = function (id) {
@@ -62,7 +66,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
           // console.log('resolving', videosService.currentVideo);
           resolve(videosService.currentVideo);
         })
-        .catch(function (error) {
+        .error(function (error) {
           console.error('error getting video by id', id, error);
           reject(error);
         });
@@ -82,23 +86,27 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   this.addComment = function (timeAndComment) {
     console.log('videoservice addComment');
     console.log(timeAndComment);
-    var videoForComment = this.currentVideo;
-    if (this.currentVideo.hasOwnProperty('comments')) {
-      var newComment = {comment: {time: timeAndComment.time, content: timeAndComment.comment, user: User.user.id, name: User.user.name,  video: this.currentVideo.id}};
-      $http({method: 'GET', url: '/api/comment/new', params: newComment}).success(function (results) {
-        if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
-          var commentIdx = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
-          if (commentIdx >= 0) {
-            videosService.currentVideo.comments[commentIdx].id = results.id;  // TODO:maybe also change some css here 
-                                                                              // so that they know the comment was saved 
-                                                                              // successfully, or to make it possible to edit comment
+    var videoForComment = videosService.currentVideo;
+    if (videosService.currentVideo.hasOwnProperty('comments')) {
+      var newComment = {comment: {time: timeAndComment.time, content: timeAndComment.comment, user: User.user.id, name: User.user.name,  video: videosService.currentVideo.id}};
+      $http({method: 'GET', url: '/api/comment/new', params: newComment})
+        .success(function (results) {
+          if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
+            var commentIdx = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
+            if (commentIdx >= 0) {
+              videosService.currentVideo.comments[commentIdx].id = results.id;  // TODO:maybe also change some css here 
+                                                                                // so that they know the comment was saved 
+                                                                                // successfully, or to make it possible to edit comment
+            }
           }
-        }
-      });
-      this.currentVideo.comments.push(newComment.comment);
+        })
+        .error(function (error) {
+          console.error('error adding comment', error);
+        });
+      videosService.currentVideo.comments.push(newComment.comment);
 
-      this.videos.forEach(function (video) {
-        if (this.currentVideo.id == video.id) {
+      videosService.videos.forEach(function (video) {
+        if (videosService.currentVideo.id == video.id) {
           video.comments++;
         }
       });
