@@ -7,15 +7,21 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
 
   // remember the initial permissions so we can diff when they save
   $scope.initialPermissions = {};
-  for (var permGroup in $scope.video.permissions) {
-    $scope.initialPermissions[permGroup]={};
-    for (var entity in $scope.video.permissions[permGroup]) {
-      $scope.initialPermissions[permGroup][entity]={};
-      for (var perm in $scope.video.permissions[permGroup][entity]) {
+  // for (var permGroup in $scope.video.permissions) {
+  Object.keys($scope.video.permissions).forEach(function (permGroup) {
+
+    // });
+    $scope.initialPermissions[permGroup] = {};
+    // for (var entity in $scope.video.permissions[permGroup]) {
+    Object.keys($scope.video.permissions[permGroup]).forEach(function (entity) {
+
+      $scope.initialPermissions[permGroup][entity] = {};
+      // for (var perm in $scope.video.permissions[permGroup][entity]) {
+      Object.keys($scope.video.permissions[permGroup][entity]).forEach(function (perm) {
         $scope.initialPermissions[permGroup][entity][perm] = $scope.video.permissions[permGroup][entity][perm];
-      }
-    }
-  }
+      });
+    });
+  });
 
   var defaultPermissionsForNewUser = {
     read: true,
@@ -31,15 +37,15 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
     delete: false
   };
 
-  $scope.dismiss = function() {
+  $scope.dismiss = function () {
 
     $scope.$dismiss();
   };
 
   $scope.getUsernames = function (query) {
     console.log('getUsernames::query:', query);
-    return $http.get('/api/users/'+query)
-      .then(function(response){
+    return $http.get('/api/users/' + query)
+      .then(function (response) {
         // console.log(response);
         // // return [];
         // var results = response.data.map(function(thisUser){
@@ -54,14 +60,15 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
       });
   };
 
-  $scope.save = function() {
+  $scope.save = function () {
     console.log('save the settings for the video');
-    
+
     // loop over the new permissions' permgroups' entities, 
     // if the key is in inital, compare within, 
     // if not, add the permissions
 
-    for (var permGroup in $scope.video.permissions) {
+    //for (var permGroup in $scope.video.permissions) {
+    Object.keys($scope.video.permissions).forEach(function (permGroup) {
       // check $scope.initialPermissions for entities not in new to queue for deletion
       var entityRemovals = [];
       for (var initialEntity in $scope.initialPermissions[permGroup]) {
@@ -107,7 +114,7 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
           }
         }
       }
-    }
+    });
 
     $scope.dismiss();
   };
