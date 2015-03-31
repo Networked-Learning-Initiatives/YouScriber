@@ -18,7 +18,6 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
   // $scope.videoMetadata = {};
-  var videoScope = $scope;
 
   $scope.userService = User;
 
