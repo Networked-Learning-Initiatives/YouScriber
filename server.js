@@ -338,6 +338,68 @@ function addVideo (response, userId, httpResponse) {
     });
 }
 
+app.delete('/api/videos/:vid', function (req, res) {
+  //first check permissions if this user can admin this video, 
+  // the user can delte this video IF the user has admin, or a group or org this user is in has admin
+  var userHasAdminQuery = 'select * from user_privilege where ysuser=? and video=? and permission=?';
+  query(userHasAdminQuery, [req.body.uid, req.params.vid, permissionIds.admin])
+    .then(function (results) {
+      if (results.rows.length > 0) {
+        //i'm allowed to delete it
+
+      } else {
+        //maybe my group or org memberships permit me to delete it
+        var userInGroupCanDelete = 'select p.name from group_member gm join group_privilege gp on gp.ysgroup=gm.ysgroup join permission p on p.id=gp.permission where p.id=? and gp.video=? and gm.ysuser=?';
+        query(userInGroupCanDelete, [permissionIds.admin, req.params.vid, req.body.uid])
+          .then(function (results) {
+            if (results.rows.length > 0) {
+              //i'm allowed to delete it
+
+            } else {
+              var userInOrgCanDelete = 'select p.name from organization_member om join organization_privilege op on op.organization=om.organization join permission p on p.id=op.permission where p.id=? and op.video=? and om.ysuser=?';
+              query(userInOrgCanDelete, [permissionIds.admin, req.params.vid, req.body.uid])
+                .then(function (results) {
+                  if (results.rows.length > 0) {
+                    //i'm allowed to delete it
+
+                  } else {
+                    res.status(500).send("permission denied");
+                  }
+                });
+            }
+          });
+      }
+    });
+  // if so, 
+  var commentVideoQuery = 'delete from comment where video_id=?';
+  var groupVideoQuery = 'delete from group_privilege where video=?';
+  var userVideoQuery = 'delete from user_privilege where video=?';
+  var organizationVideoQuery = 'delete from organization_privilege where video=?';
+  query(commentVideoQuery, [req.params.vid])
+    .then(function(){
+      console.log('sbout to delete privilieges');
+      return RSVP.all([
+        query(groupVideoQuery, [req.params.vid]), 
+        query(userVideoQuery, [req.params.vid]), 
+        query(organizationVideoQuery, [req.params.vid])
+      ]);
+    })
+    .then(function () {
+      var deleteVideoQuery = 'delete from video where id=?';
+      query(deleteVideoQuery, [req.params.vid])
+        .then(function () {
+          res.status(200).send('video deleted');
+        })
+        .catch(function (error) {
+          res.status(400).send('failed to delete2'+error);
+        });
+    })
+    .catch(function (error) {
+      res.status(400).send('failed to delete1'+error);
+    });
+  
+});
+
 app.get('/api/video/new', function(req, res) {
   // video is not in our database, so add it.
   if (!req.query.hasOwnProperty('user')) {
