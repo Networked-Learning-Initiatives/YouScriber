@@ -18,7 +18,7 @@
     <form class="form-inline" role="form" ng-show="userService.loggedIn() && videosService.userCan('author')">
       <div class="form-group">
         <label class="sr-only" for="comment">Enter a new comment here</label>
-        <textarea cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()"></textarea>
+        <textarea cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()" ng-keyup="maybeCancel($event)"></textarea>
       </div>
       
     </form>

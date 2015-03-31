@@ -4,6 +4,17 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   var videosService = this;
 
   this.videos = [];
+  this.filter = "";
+  this.videoFiltered = function () {
+    if (videosService.filter.length > 0) {
+      var results = videosService.videos.filter(function (element) {
+        return element.title.toLowerCase().indexOf(videosService.filter.toLowerCase()) >= 0;
+      });
+      console.log(results);
+      return results;
+    }
+    return videosService.videos;
+  };
   this.currentVideo = {};
 
   this.getPublicVideos = function (user) {

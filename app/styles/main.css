@@ -381,3 +381,8 @@ i.fa.fa-times {
 .youscriber h1 {
   margin-top: 0px
 }
+
+/* set the width of the search bar */
+.navbar-form .form-control.youscriber-searchbar {
+  width: 240px;
+}

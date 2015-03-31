@@ -49,6 +49,12 @@
         <li ng-show="userService.loggedIn()" ng-click="logout()"><a href="#/dash">Logout</a></li>
         <li ng-show="!userService.loggedIn()"><a href="#/register">Register</a></li>
       </ul>
+      <form class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control youscriber-searchbar" placeholder="Search" ng-model="query" ng-change="search()">
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </form>
     </div>
   </div><!-- /.container-fluid -->
 </nav>
