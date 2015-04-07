@@ -15,12 +15,12 @@
     <timeline comments="videosService.currentVideo.comments" duration="videosService.currentVideo.duration" width="600" time="videoTime"></timeline>
 
     <!-- TODO: at some point need a more sophisticated check for this or else prevent access to this view in the first place -->
-    <form class="form-inline" role="form" ng-show="userService.loggedIn() && videosService.userCan('author')">
+    <form class="form-inline" role="form" ng-show="userService.loggedIn() && videosService.userCan('author')" ng-submit="post()">
       <div class="form-group">
         <label class="sr-only" for="comment">Enter a new comment here</label>
-        <textarea cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()"></textarea>
+        <text-angular placeholder="Enter a new comment here..." ng-model="newComment" ta-text-editor-setup="textAreaSetup"></text-angular>
+  <!--      <textarea textangular cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()"></textarea> -->
       </div>
-      
     </form>
   </div>
   <div class="col-md-6 comments-col">

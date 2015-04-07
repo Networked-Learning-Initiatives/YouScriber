@@ -10,9 +10,10 @@ angular.module('youScriberApp', [
   'ui.bootstrap',
   'angular-md5',
   'ngEnter',
-  'ui.router'
+  'ui.router',
+  'textAngular'
 ])
-  .config(function($stateProvider, $urlRouterProvider) {
+  .config(function($stateProvider, $urlRouterProvider, $provide) {
     $urlRouterProvider.otherwise('/dash');
     $stateProvider
       .state('dash', {
@@ -82,6 +83,18 @@ angular.module('youScriberApp', [
         templateUrl: 'views/manage.html',
         controller: 'ManageCtrl'
       })
+
+    $provide.decorator('taOptions', ['$delegate', function(taOptions) {
+      taOptions.toolbar = [
+        // ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'quote'],
+        ['insertLink', 'bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'html'],
+        // ['justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],
+        //['html', 'insertImage','insertLink', 'insertVideo', 'wordcount', 'charcount']
+      ];
+      return taOptions;
+    }])
+
+    
   })
   .run(function(editableOptions) {
     editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'
