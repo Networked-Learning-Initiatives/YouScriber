@@ -3,7 +3,9 @@
     <form role="form" ng-submit="registerOrg()">
       <div class="form-group" ng-class="{'has-error': orgExists}">
         <label for="title">Organization Title</label>
-        <input type="text" class="form-control" id="title" placeholder="Enter desired Organization Title" ng-model="title" autofocus>
+        
+        <input type="text" ng-model="orgSelected" placeholder="Add new organization" typeahead="org as org.title for org in getOrgs($viewValue)" typeahead-loading="loadingUOrgs" class="form-control" typeahead-on-select="joinOrg()" autofocus>
+        <i ng-show="loadingMatchingOrgs" class="fa fa-refresh"></i>
       </div>
       <div class="form-group">
         <label for="description">Description</label>
