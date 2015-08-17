@@ -167,7 +167,7 @@ table.comments {
 }
 
 .comment td {
-    border: solid 1px #158d9d;
+    border: solid 1px #138292;
     border-style: none solid solid none;
     padding: 10px;
 }
@@ -213,7 +213,7 @@ tr.comment td:first-child {
   /*width: 600px;*/
   height: 20px;
   border: 1px solid black;
-  background: #158d9d;
+  background: #138292;
   position: relative;
   margin-bottom: 20px;
 }
@@ -247,8 +247,8 @@ tr.comment td:first-child {
 
 .youscriber .editable-click, .youscriber a.editable-click {
   text-decoration: none;
-  color: #158d9d;
-  border-bottom: dashed 1px #158d9d;
+  color: #138292;
+  border-bottom: dashed 1px #138292;
 }
 
 .youscriber .video-panel {
@@ -261,30 +261,30 @@ tr.comment td:first-child {
    /*border-width: 2px;*/
    outline: 0; 
    /*r,l*/
-   /*box-shadow: 4px 0 10px -4px #158d9d, -4px 0 4px -4px #158d9d;*/
-   /*box-shadow: 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
+   /*box-shadow: 4px 0 10px -4px #138292, -4px 0 4px -4px #138292;*/
+   /*box-shadow: 0 8px 4px -4px #138292, 0 -8px 4px -4px #138292;*/
    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 
 tr.current-comment td:first-child { 
   border-top-left-radius: 10px; 
   /*border-right: 0;*/
-  /*box-shadow: -8px 0 4px -4px #158d9d, 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
+  /*box-shadow: -8px 0 4px -4px #138292, 0 8px 4px -4px #138292, 0 -8px 4px -4px #138292;*/
 }
 
 tr.current-comment td:last-child { 
   border-top-right-radius: 10px; 
-  /*box-shadow: 8px 0 10px -4px #158d9d, 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
+  /*box-shadow: 8px 0 10px -4px #138292, 0 8px 4px -4px #138292, 0 -8px 4px -4px #138292;*/
 }
 
 tr.current-comment td:first-child { 
   border-bottom-left-radius: 10px; 
-  /*box-shadow: -8px 0 4px -4px #158d9d, 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
+  /*box-shadow: -8px 0 4px -4px #138292, 0 8px 4px -4px #138292, 0 -8px 4px -4px #138292;*/
 }
 
 tr.current-comment td:last-child { 
   border-bottom-right-radius: 10px; 
-  /*box-shadow: 8px 0 10px -4px #158d9d, 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
+  /*box-shadow: 8px 0 10px -4px #138292, 0 8px 4px -4px #138292, 0 -8px 4px -4px #138292;*/
 }
 
 tr.current-comment td { 
@@ -293,7 +293,7 @@ tr.current-comment td {
 
 tr.current-comment td:first-child { 
   border-left-style: solid; 
-  /*box-shadow: -8px 0 4px -4px #158d9d, 0 8px 4px -4px #158d9d, 0 -8px 4px -4px #158d9d;*/
+  /*box-shadow: -8px 0 4px -4px #138292, 0 8px 4px -4px #138292, 0 -8px 4px -4px #138292;*/
 }
 
 .comments-col {
