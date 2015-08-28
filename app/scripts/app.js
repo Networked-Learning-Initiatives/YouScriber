@@ -34,7 +34,7 @@ angular.module('youScriberApp', [
           .state('video.comments.settings', {
             url: '/settings',
             onEnter: ['$stateParams', '$state', '$modal', '$resource', 'Videos', '$http', 'User', function($stateParams, $state, $modal, $resource, Videos, $http, User) {
-              $modal.open({
+              var theModal = $modal.open({
                   size: 'lg',
                   templateUrl: "views/video/settings.html",
                   resolve: {
@@ -44,6 +44,9 @@ angular.module('youScriberApp', [
               }).result.finally(function() {
                   $state.go('^');
               });
+              // theModal.opened.then(function () {
+                
+              // });
             }]
           })
         .state('video.comment', {
