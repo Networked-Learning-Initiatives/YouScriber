@@ -12,7 +12,7 @@
     "angular-sanitize": ">=1.2.6",
     "angular-route": ">=1.2.6",
     "swfobject": "*",
-    "angular-bootstrap": "~0.11.0",
+    "angular-bootstrap": "~0.13.0",
     "angular-md5": "~0.1.7",
     "angular-xeditable": "~0.1.8",
     "fontawesome": "~4.2.0",
