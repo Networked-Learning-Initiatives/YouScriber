@@ -5,3 +5,4 @@ app/dist
 app/bower_components/
 dist/
 npm-debug.log
+.swp
