@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('youScriberApp').controller('VideoSettings', function ($scope, $http, User, video, Videos) {
+angular.module('youScriberApp').controller('VideoSettings', function ($scope, $http, User, video, Videos, $state, $modalInstance) {
   $scope.usernameSelected = '';
 
   $scope.video = video;
@@ -53,6 +53,18 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
         return response.data;
       });
   };
+
+  $scope.deleteVideo = function() {
+    $http.delete('/api/videos/'+$scope.video.id)
+      .success(function (resp) {
+            console.log('video deleted');
+            $state.go('dash');
+  //          $modalInstance.dismiss('cancel');
+      })
+      .error(function (error) {
+        console.error('error deleting video', error);
+      });
+  } 
 
   $scope.save = function() {
     console.log('save the settings for the video');

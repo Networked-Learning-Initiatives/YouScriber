@@ -49,7 +49,7 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   }
 
   $scope.post = function() {
-
+    console.log("posting");
     var theNewComment = {
       time: $scope.playerService.getCurrentTime(),
       comment: $scope.newComment
@@ -83,6 +83,18 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
     $state.go('video.comments.settings');
   };
 
+  $scope.$watch('newComment', function () {
+    console.log($scope.newComment);
+  });
+
+  $scope.textAreaSetup = function($element) {
+    $element.attr('ng-change', 'typing()');
+    $element.attr('autofocus', '');
+    $element.attr('enter-submit', 'post()');
+    // id="comment" class="form-control input-lg"
+    $element.attr('id', 'comment');
+    $element.attr('class', 'form-control input-lg new-comment-box');
+  }
 }).filter('timefilter', function() {
   return function(input) {
     if (Array.isArray(input)) {

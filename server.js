@@ -26,9 +26,7 @@ var permissionIds = {
   'edit': 3,
   'delete': 4,
   'admin': 5
-};
-
-var ANONYMOUS_USER_ID = 1;
+}
 
 
 
@@ -135,7 +133,7 @@ function getPublicVideos(callback, user){
   var videosForUserQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join user_privilege on user_privilege.video=video.id where user_privilege.ysuser=? group by video.id';
 
   // default the usserId to null, in case we don't currently know who the user is.
-  var userId = 1;
+  var userId = 'null';
   if (user && user.hasOwnProperty('id')) {
     userId = user.id;
   }
@@ -188,7 +186,6 @@ function getPublicVideos(callback, user){
   });
 }
 
-// someone is trying to login
 app.post('/api/user/login', function (req, res) {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
 
@@ -220,7 +217,6 @@ app.post('/api/user/login', function (req, res) {
   }
 });
 
-// someone is trying to logout
 app.post('/api/user/logout', function (req, res) {
   // TODO: add logout logic
   res.status(200).send();
@@ -262,7 +258,6 @@ app.post('/api/user', function (req, res) {
   }
 });
 
-// get the videos the logged in user can see, or get the videos the anonymous person can see 
 app.get('/api/videos', function (req, res) {
   var user = req.query.user;
   
@@ -312,20 +307,17 @@ function addVideo (response, userId, httpResponse) {
         var addPerms = 'insert into user_privilege(ysuser, permission, video) values (?,?,?)';
         return query(addPerms, [userId, permId, results.insertId]);
       }))
-        .then(function() {
-          return query(addPerms, [ANONYMOUS_USER_ID, permissionIds.read, results.insertId]);
-        })
         .then(function () {
           var findUsers = "select id, name from ysuser where id=?";
           return query(findUsers, [userId]).then(function (userResults) {
             var userPerms = {};
             userPerms[userResults[0].name] = {
               id: userResults[0].id,
-              read: true,
-              author: true, 
-              edit: true, 
-              delete: true,
-              admin: true,
+              read: false,
+              author: false, 
+              edit: false, 
+              delete: false,
+              admin: false,
             };
             video.id = results.insertId;
             video.permissions = {
@@ -346,7 +338,68 @@ function addVideo (response, userId, httpResponse) {
     });
 }
 
-// submit a new video
+app.delete('/api/videos/:vid', function (req, res) {
+  //first check permissions if this user can admin this video, 
+  // the user can delte this video IF the user has admin, or a group or org this user is in has admin
+  var userHasAdminQuery = 'select * from user_privilege where ysuser=? and video=? and permission=?';
+  query(userHasAdminQuery, [req.body.uid, req.params.vid, permissionIds.admin])
+    .then(function (results) {
+      if (results.rows.length > 0) {
+        //i'm allowed to delete it
+
+      } else {
+        //maybe my group or org memberships permit me to delete it
+        var userInGroupCanDelete = 'select p.name from group_member gm join group_privilege gp on gp.ysgroup=gm.ysgroup join permission p on p.id=gp.permission where p.id=? and gp.video=? and gm.ysuser=?';
+        query(userInGroupCanDelete, [permissionIds.admin, req.params.vid, req.body.uid])
+          .then(function (results) {
+            if (results.rows.length > 0) {
+              //i'm allowed to delete it
+
+            } else {
+              var userInOrgCanDelete = 'select p.name from organization_member om join organization_privilege op on op.organization=om.organization join permission p on p.id=op.permission where p.id=? and op.video=? and om.ysuser=?';
+              query(userInOrgCanDelete, [permissionIds.admin, req.params.vid, req.body.uid])
+                .then(function (results) {
+                  if (results.rows.length > 0) {
+                    //i'm allowed to delete it
+
+                  } else {
+                    res.status(500).send("permission denied");
+                  }
+                });
+            }
+          });
+      }
+    });
+  // if so, 
+  var commentVideoQuery = 'delete from comment where video_id=?';
+  var groupVideoQuery = 'delete from group_privilege where video=?';
+  var userVideoQuery = 'delete from user_privilege where video=?';
+  var organizationVideoQuery = 'delete from organization_privilege where video=?';
+  query(commentVideoQuery, [req.params.vid])
+    .then(function(){
+      console.log('sbout to delete privilieges');
+      return RSVP.all([
+        query(groupVideoQuery, [req.params.vid]), 
+        query(userVideoQuery, [req.params.vid]), 
+        query(organizationVideoQuery, [req.params.vid])
+      ]);
+    })
+    .then(function () {
+      var deleteVideoQuery = 'delete from video where id=?';
+      query(deleteVideoQuery, [req.params.vid])
+        .then(function () {
+          res.status(200).send('video deleted');
+        })
+        .catch(function (error) {
+          res.status(400).send('failed to delete2'+error);
+        });
+    })
+    .catch(function (error) {
+      res.status(400).send('failed to delete1'+error);
+    });
+  
+});
+
 app.get('/api/video/new', function(req, res) {
   // video is not in our database, so add it.
   if (!req.query.hasOwnProperty('user')) {
@@ -391,7 +444,6 @@ function addComment(comment, httpResponse) {
 
 }
 
-// submit a new comment
 app.get('/api/comment/new', function(req, res) {
   console.log('/api/comment/new', req.query);
 
@@ -425,8 +477,6 @@ app.get('/api/comment/new', function(req, res) {
 
 });
 
-// get the info for a particular video )the video with id vid (form the URL), this variable 
-// will be available as req.params.vid
 app.get('/api/videos/:vid', function(req, res) {
 
   console.log('/api/videos/:vid', req.params.vid);
@@ -516,7 +566,31 @@ app.get('/api/videos/:vid', function(req, res) {
   });
 });
 
-// create a new organization
+// app.get('/posts/:slug', function(req, res) {
+//   var post = posts[req.params.slug];
+
+// app.get('/api/videos/org/:orgId', function (req, res) {
+//   getPublicVideos(function(results) {
+//     console.log(results);
+//     res.status(200).json(results);
+//   }, {org:orgId});
+// });
+
+// app.get('/api/videos/group/:gId', function (req, res) {
+//   getPublicVideos(function(results) {
+//     console.log(results);
+//     res.status(200).json(results);
+//   }, {group:gId});
+// });
+
+// app.get('/api/videos/user/:uId', function (req, res) {
+//   getPublicVideos(function(results) {
+//     console.log(results);
+//     res.status(200).json(results);
+//   }, {user:uId});
+// });
+
+
 app.post('/api/org', function (req, res) {
 
   // check if we have the title and description and a user to be the owner
@@ -548,7 +622,6 @@ app.post('/api/org', function (req, res) {
   }
 });
 
-// create a new group
 app.post('/api/group', function (req, res) {
 
   // check if we have the title and description and a user to be the owner
@@ -560,16 +633,13 @@ app.post('/api/group', function (req, res) {
   if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
     // TODO: consider making description optional
     var addGroupQuery = "insert into ysgroup (title, description, owner) values (?,?,?)";
-    // TODO: need to add user as member of group!
+    
     executeQuery(addGroupQuery, [req.body.title, req.body.description, req.body.user.id], function(result) {
       //called for success
       console.log(result);
-      var addUserToGroup = 'insert into group_member (ysuser, ysgroup, pending) values (?,?,false)';
-      query(addUserToGroup, [req.body.user.id, result.insertId]).then(function () {
-        res.status(201).json({
-          id:result.insertId,
-          title: req.body.title
-        });
+      res.status(201).json({
+        id:result.insertId,
+        title: req.body.title
       });
 
     }, function (err) {
@@ -583,9 +653,6 @@ app.post('/api/group', function (req, res) {
   }
 });
 
-
-
-// search users for this substring ("ich" will match "Michael")
 app.get('/api/users/:infix', function(req, res) {
   var findUsers = "select id, name from ysuser where name like ?"; //TODO: eventually also grab their avatar?/icon?
   executeQuery(findUsers, ['%'+req.params.infix+'%'], function(users) {
@@ -595,7 +662,6 @@ app.get('/api/users/:infix', function(req, res) {
   });
 });
 
-// search groups for this substring ("ich" will match "Michael")
 app.get('/api/groups/:userId/:infix', function(req, res) {
   var findgroups = "select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where g.title like ? and gm.ysuser=?"; //TODO: eventually also grab their avatar?/icon?
   executeQuery(findgroups, ['%'+req.params.infix+'%', req.params.userId], function(groups) {
@@ -605,7 +671,6 @@ app.get('/api/groups/:userId/:infix', function(req, res) {
   });
 });
 
-// search orgs for this substring ("ich" will match "Michael")
 app.get('/api/orgs/:userId/:infix', function(req, res) {
   var findOrgs = "select o.id, o.title from organization o join organization_member om on om.organization=o.id where o.title like ? and om.ysuser=?"; //TODO: eventually also grab their avatar?/icon?
   executeQuery(findOrgs, ['%'+req.params.infix+'%', req.params.userId], function(orgs) {
@@ -671,8 +736,6 @@ function dropAllEntitiesPermissionsFromVideo (entities, video, permGroup) {
   }));
 }
 
-// entity is user, or group, or org
-// this will remove all of an entity's explicit permissions from the video
 app.post('/api/video/:vid/entity-drop', function (req, res) {
   if (req.body.hasOwnProperty('entities') 
     && req.body.hasOwnProperty('user') 
@@ -692,7 +755,6 @@ app.post('/api/video/:vid/entity-drop', function (req, res) {
     res.status(400).send("entities, user, and permGroup required in body");
   }
 });
-
 
 function addEntityPermissionsForVideo(entity, video, permGroup, permissions) {
   var table, col;
@@ -718,7 +780,7 @@ function addEntityPermissionsForVideo(entity, video, permGroup, permissions) {
       console.error(error);
     });
 }
-// this will add an entity explicit permissions for the video
+
 app.post('/api/video/:vid/entity-add', function (req, res) {
   if (req.body.hasOwnProperty('entity') 
     && req.body.hasOwnProperty('user') 
@@ -768,7 +830,6 @@ function updateEntityPermissionsForVideo(entity, video, permGroup, permissions) 
   }));
 }
 
-// this will modify the entity's permissions to the video
 app.post('/api/video/:vid/entity-mod', function (req, res) {
   if (req.body.hasOwnProperty('entity') 
     && req.body.hasOwnProperty('user') 
@@ -794,7 +855,6 @@ function dropComment (cid) {
   return query(dropCommentQuery, [cid]);
 }
 
-// delete a comment
 app.post('/api/comments/:cid/delete', function (req, res) {
   dropComment(req.params.cid)
     .then(function () {
@@ -810,7 +870,7 @@ function updateCommentTime (cid, t) {
   return query(updateCommentQuery, [t, cid]);
 }
 
-// update the time on a certain comment
+
 app.post('/api/comments/:cid/time', function (req, res) {
   updateCommentTime(req.params.cid, req.body.time)
     .then(function () {
@@ -826,7 +886,6 @@ function updateCommentContent (cid, content) {
   return query(updateCommentQuery, [content, cid]);
 }
 
-// update a comment's content
 app.post('/api/comments/:cid/content', function (req, res) {
   updateCommentContent(req.params.cid, req.body.content)
     .then(function () {
@@ -837,46 +896,6 @@ app.post('/api/comments/:cid/content', function (req, res) {
     });
 });
 
-// find a group by name that i have access to
-app.get('/api/groups/search/:userId/:infix', function(req, res) {
-  var findEntityQuery = "select o.title, o.id from ysgroup o where o.title like ? and o.id not in (select om.ysgroup from group_member om where ysuser=?)";
-  executeQuery(findEntityQuery, ['%'+req.params.infix+'%', req.params.userId], function(groups) {
-    res.status(200).json(groups);
-  }, function(errorMessage) {
-    res.status(204).send(errorMessage);
-  });
-});
-
-// find a org by name that i have access to
-app.get('/api/orgs/search/:userId/:infix', function(req, res) {
-  var findEntityQuery = "select o.title, o.id from organization o where o.title like ? and o.id not in (select om.organization from organization_member om where ysuser=?)";
-  executeQuery(findEntityQuery, ['%'+req.params.infix+'%', req.params.userId], function(orgs) {
-    res.status(200).json(orgs);
-  }, function(errorMessage) {
-    res.status(204).send(errorMessage);
-  });
-});
-
-// create a group
-app.post('/api/group/:gid/add', function (req, res) {
-  if (!req.body.hasOwnProperty('user')) {
-    res.status(400).send('must send user id');
-  } else {
-    var isUserInGroup = 'select * from group_member where ysuser=? and ysgroup=?';
-    query(isUserInGroup, [req.body.user, req.params.gid])
-      .then(function (userAlreadyInGroup) {
-        if (userAlreadyInGroup.length > 0) {
-          res.status(400).send('user already in group');
-        } else {
-          var joinGroup = 'insert into group_member (ysuser, ysgroup, pending) values (?, ?, true)';
-          query(joinGroup, [req.body.user, req.params.gid])
-            .then(function () {
-              res.status(200).send("joined");
-            });
-        }
-      });
-  }
-});
 
 app.use(express.static(__dirname + '/app'));
 
