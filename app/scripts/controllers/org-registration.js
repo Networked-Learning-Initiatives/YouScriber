@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('youScriberApp').controller('OrganizationRegistrationCtrl', function ($scope, $routeParams, md5, $location, User) {
+angular.module('youScriberApp').controller('OrganizationRegistrationCtrl', function ($scope, $routeParams, md5, $location, User, $http) {
 
   var orgRegistrationCtrlScope = $scope;
 
@@ -8,6 +8,7 @@ angular.module('youScriberApp').controller('OrganizationRegistrationCtrl', funct
   $scope.description = '';
   $scope.errorMessage = '';
   $scope.orgExists = false;
+  $scope.orgSelected = '';
 
   $scope.registerOrg = function() {
     if (!$scope.title || $scope.title === null || $scope.title.length < 1) {
@@ -30,6 +31,16 @@ angular.module('youScriberApp').controller('OrganizationRegistrationCtrl', funct
           registrationCtrlScope.errorMessage = error.msg;
         }
         console.log('err', error);
+      });
+  };
+
+  $scope.getOrgs = function (query) {
+    console.log('getOrgs::query:', query);
+    console.log(User.getCurrentContext());
+    return $http.get('/api/orgs/search/'+User.getCurrentContext().id+'/'+query)
+      .then(function(response){
+        console.log(response);
+        return response.data;
       });
   };
 
