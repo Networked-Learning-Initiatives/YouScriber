@@ -12,7 +12,7 @@
       <div class="panel-footer">&nbsp;</div>
     </div>
     
-    <video-panel ng-repeat="video in videosService.videos" model="video" video-id="video.ytid"></video-panel>
+    <video-panel ng-repeat="video in videosService.videoFiltered()" model="video" video-id="video.ytid"></video-panel>
   </div>
 
   <div class="col-md-2" ng-show="userService.loggedIn()">

@@ -1,4 +1,4 @@
-angular.module('youScriberApp').directive('navbar', function (User) {
+angular.module('youScriberApp').directive('navbar', function (User, Videos) {
   return {
     restrict: 'E',
     // scope: { 
@@ -11,6 +11,11 @@ angular.module('youScriberApp').directive('navbar', function (User) {
 
       scope.logout = function() {
         User.logout();
+      };
+      scope.query = "";
+      scope.search = function() {
+        console.log(scope.query);
+        Videos.filter = scope.query;
       };
     }
   };

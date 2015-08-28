@@ -384,4 +384,10 @@ i.fa.fa-times {
 
 div.form-control.input-lg.new-comment-box {
   width: 600px;
+  /*margin-top: 0*/
+}
+
+/* set the width of the search bar */
+.navbar-form .form-control.youscriber-searchbar {
+  width: 240px;
 }

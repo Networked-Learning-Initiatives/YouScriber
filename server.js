@@ -3,11 +3,11 @@ var app = express();
 // var pg = require('pg');  //Commented out until database implementation
 var mysql = require('mysql');
 var http = require('http').Server(app);
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 var async = require('async'); //TODO: convert to RSVP
 var RSVP = require('rsvp');
-app.use( bodyParser.json() );       // to support JSON-encoded bodies
-app.use( bodyParser.urlencoded({extended:true}) ); // to support URL-encoded bodies
+app.use(bodyParser.json());       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({extended: true})); // to support URL-encoded bodies
 
 var request = require('request');
 
@@ -17,7 +17,7 @@ var connection = mysql.createConnection({
     user: 'youscriber',
     password: 'youscriber',
     database: 'youscriber'
-});
+  });
 connection.connect();
 
 var permissionIds = {
@@ -26,14 +26,14 @@ var permissionIds = {
   'edit': 3,
   'delete': 4,
   'admin': 5
-}
+};
 
 
 
 //CSRF Protection ------------------------------------------
-cookieParser = require('cookie-parser');
-cookieSession = require('cookie-session');
-csurf = require('csurf');
+var cookieParser = require('cookie-parser');
+var cookieSession = require('cookie-session');
+var csurf = require('csurf');
 
 app.use(cookieParser("I know what you did last summer, and I'm jealous of your ears."));
 app.use(cookieSession({
@@ -65,15 +65,14 @@ app.use(express.static(__dirname + '/app'));
 
 var port = 3333;
 
-function query (sql, params) {
+function query(sql, params) {
   var promise = new RSVP.Promise(function (resolve, reject) {
     console.log(sql, params);
     connection.query(sql, params, function (err, result) {
-      if(err) {
+      if (err) {
         console.error('sql error in query', err);
         reject(err);
-      }
-      else {
+      } else {
         console.log('query success:', result);
         resolve(result);
       }
@@ -82,11 +81,11 @@ function query (sql, params) {
   return promise;
 }
 
-function executeQuery (sql, params, success, failure) {
+function executeQuery(sql, params, success, failure) {
   console.log(sql, params);
   connection.query(sql, params, function (err, result) {
-    if(err) {
-      if (failure){
+    if (err) {
+      if (failure) {
         failure(err);
       }
       return console.error('error running query: ', sql, err);
@@ -97,33 +96,33 @@ function executeQuery (sql, params, success, failure) {
   });
 }
 
-function cbWrapper (callback) {
-  return function(result) {
+function cbWrapper(callback) {
+  return function (result) {
     callback(null, result);
   };
 }
 
-function getGroups (id) {
-  return function(cb) {
+function getGroups(id) {
+  return function (cb) {
     var getGroupsQuery = 'select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where gm.ysuser=?';
     executeQuery(getGroupsQuery, [id], cbWrapper(cb), cb);
   };
 }
 
-function getOrgs (id) {
-  return function(cb) {
+function getOrgs(id) {
+  return function (cb) {
     var getOrgsQuery = 'select o.id, o.title from organization o join organization_member om on om.organization=o.id where om.ysuser=?';
     executeQuery(getOrgsQuery, [id], cbWrapper(cb), cb);
   };
 }
 
-function getPublicVideos(callback, user){
-  
+function getPublicVideos(callback, user) {
+
   // we need to treat the union of the following several queries as a "derived table".
   // the prefix and suffix here will make that happen, and group the results as we need them.
   var queryPrefix = 'select * from ( ';
   var querySuffix = ' ) as videos group by videos.id';
-  
+
   // this query finds out which videos have no permissions set for them (making them public)
   // TODO: what would make a video private?
   var publicVideoQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id where video.id not in (select video from user_privilege union select video from group_privilege union select video from organization_privilege) group by video.id';
@@ -151,9 +150,10 @@ function getPublicVideos(callback, user){
   if (user != null && user.hasOwnProperty('groups')) {
 
     // if the current user has groups, accumulate their ids so they can be used for this query
-    for (var i=0; i<user.groups.length; i++) {
-      groupId.push(user.groups[i].id);
-    }
+    //for (var i=0; i< user.groups.length ; i++) {
+    user.groups.forEach(function (group) {
+      groupId.push(group.id);
+    });
     unionParams.push(groupId);
 
     // add this query to the composite query started above
@@ -165,7 +165,7 @@ function getPublicVideos(callback, user){
   var videosForOrgQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join organization_privilege on organization_privilege.video=video.id where organization_privilege.organization in (?) group by video.id';
   var org = [];
 
-  if (user != null && user.hasOwnProperty('orgs')) {
+  if (user !== null && user.hasOwnProperty('orgs')) {
 
     // if the current user has groups, accumulate their ids so they can be used for this query
     for (var i=0; i<user.orgs.length; i++) {
