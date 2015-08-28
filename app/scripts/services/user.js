@@ -105,4 +105,8 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
     $cookies['youScriber-context'] = JSON.stringify(org);
   };
 
+  this.joinGroup = function (gid) {
+    return $http.post('/api/group/' + gid + '/add', {user:this.user.id});
+  };
+
 });
