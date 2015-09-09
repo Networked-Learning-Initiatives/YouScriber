@@ -1,3 +1,4 @@
+'use strict';
 var Sequelize = require('sequelize');
 var sequelize = new Sequelize(
   process.env.YS_DB, // database name
@@ -27,6 +28,9 @@ var Organization = sequelize.define('organization', {
   description: Sequelize.STRING,
 });
 
+var OrganizationGroup = sequelize.define('organization_group', {
+});
+
 var GroupMembership = sequelize.define('group_membership', {
   pending: Sequelize.BOOLEAN
 });
@@ -53,15 +57,12 @@ var Permission = sequelize.define('permission', {
 });
 
 var UserPrivilege = sequelize.define('user_privilege', {
-
 });
 
 var GroupPrivilege = sequelize.define('group_privilege', {
-
 });
 
 var OrganizationPrivilege = sequelize.define('organization_privilege', {
-
 });
 
 
@@ -107,6 +108,11 @@ OrganizationPrivilege.belongsTo(Permission);
 OrganizationPrivilege.belongsTo(Video);
 Video.hasMany(OrganizationPrivilege);
 
+OrganizationGroup.belongsTo(Organization);
+OrganizationGroup.belongsTo(Group);
+
+Group.hasMany(OrganizationGroup);
+Organization.hasMany(OrganizationGroup);
 
 
 exports.User = User;
@@ -120,11 +126,11 @@ exports.Permission = Permission;
 exports.UserPrivilege = UserPrivilege;
 exports.GroupPrivilege = GroupPrivilege;
 exports.OrganizationPrivilege = OrganizationPrivilege;
+exports.OrganizationGroup = OrganizationGroup;
 
 exports.start = function () {
-  return sequelize.sync({force: DROPTABLES}) // Use {force:true} only for updating the above models,
-                  // it drops all current data
-    .then( function (results) {
+  return sequelize.sync({force: DROPTABLES}) // Use {force:true} only for updating the above models, it drops all current data
+    .then( function () {
       return User.findOrCreate({
         where: {
           email: 'test@youscriber.com',
@@ -176,6 +182,12 @@ exports.start = function () {
         })
         .then(function () {
           // make some example data: group, org, video, comments, give test user access
+          return Group.findOrCreate({
+            where: {
+              title: 'NLI',
+              description: 'Networked Learning Initiatives (NLI), formerly the Faculty Development Institute (FDI), is a centralized, cross-discipline professional development program available to all Virginia Tech faculty, staff, and students. As a unit of Technology-enhanced Learning and Online Strategies (TLOS), NLI facilitates and leverages campus-wide partnerships to offer programming and training opportunities designed to foster technology integration and increase digital fluency for faculty, staff, and students at Virginia Tech.'
+            }, 
+          })
         });
     })
     .then( function () {
