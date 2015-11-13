@@ -10,7 +10,8 @@
     "express": "^4.8.5",
     "mysql": "^2.5.0",
     "request": "^2.45.0",
-    "rsvp": "^3.0.17"
+    "rsvp": "^3.0.17",
+    "sequelize": "^3.13.0"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
