@@ -7,6 +7,9 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       .success(function(data) {
         console.log(data);
         userService.user = {name:user, id:data.id, orgs:[]};
+        userService.currentContext = userService.user;
+        $cookies['youScriber-user'] = JSON.stringify(userService.user);
+        $rootScope.$emit('user-logged-in');
         successCallback(data);
       })
       .error(function(error) {
@@ -18,7 +21,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
     $http.post('/api/user/login', {user: user, pwHash:pwHash})
       .success(function(data) {
         console.log('logged in!', data);
-        userService.user = {name:user, id:data.id, orgs:data.orgs, groups:data.groups};
+        userService.user = {name:user, id:data.id, orgs:data.orgs, groups:data.groups, managementPerms:data.managementPerms};
         userService.currentContext = userService.user;
         $cookies['youScriber-user'] = JSON.stringify(userService.user);
         $rootScope.$emit('user-logged-in');
@@ -62,9 +65,9 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
       });
   };
 
-  this.registerGroup = function (title, description, successCallback, errorCallback) {
+  this.registerGroup = function (name, description, successCallback, errorCallback) {
     console.log('this.registerGroup::this.user:', this.user);
-    $http.post('/api/group', {title: title, description:description, user:this.user})
+    $http.post('/api/groups', {name: name, description:description, user:this.user})
       .success(function(data) {
         console.log(data);
         // userService.user.orgs.push = {name:user};
@@ -87,26 +90,26 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
     return loggedIn;
   };
 
-  this.getCurrentContext = function () {
-    if (!this.currentContext)
-    {
-      if ($cookies.hasOwnProperty('youScriber-context')) {
-        this.currentContext = JSON.parse($cookies['youScriber-context']);
-      } else {
-        this.currentContext = this.user;
-      }
-    }
-    return this.currentContext;
-  };
+  // this.getCurrentContext = function () {
+  //   if (!this.currentContext)
+  //   {
+  //     if ($cookies.hasOwnProperty('youScriber-context')) {
+  //       this.currentContext = JSON.parse($cookies['youScriber-context']);
+  //     } else {
+  //       this.currentContext = this.user;
+  //     }
+  //   }
+  //   return this.currentContext;
+  // };
 
-  this.setCurrentContext = function(org) {
-    console.log('changing context: ', org);
-    this.currentContext = org;
-    $cookies['youScriber-context'] = JSON.stringify(org);
-  };
+  // this.setCurrentContext = function(org) {
+  //   console.log('changing context: ', org);
+  //   this.currentContext = org;
+  //   $cookies['youScriber-context'] = JSON.stringify(org);
+  // };
 
   this.joinGroup = function (gid) {
-    return $http.post('/api/group/' + gid + '/add', {user:this.user.id});
+    return $http.post('/api/groups/' + gid + '/add', {user:this.user.id});
   };
 
 });

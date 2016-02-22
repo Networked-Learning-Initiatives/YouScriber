@@ -22,9 +22,10 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
         width: scope.width,
         height: scope.height
       };
+      console.log(scope.atts);
 
-      var Videos = $resource('http://gdata.youtube.com/feeds/api/videos/:videoid?v=2&alt=json', {query:'@query'});
-      scope.videoMetadata = Videos.get({videoid:scope.code});
+      // var Videos = $resource('http://gdata.youtube.com/feeds/api/videos/:videoid?v=2&alt=json', {query:'@query'});
+      // scope.videoMetadata = Videos.get({videoid:scope.code});
       
       scope.destroyWatch = scope.$watch('code', function (newVal) {
         // console.log('video code change noticed in yt directive', newVal);
@@ -61,7 +62,7 @@ angular.module('youtubeapi', []).directive('ysYoutube', function($sce, $location
         });
 
         // console.log('about to create this friggin video!');
-        // console.log(scope.atts);
+        console.log(scope.atts);
         swfobject.createSWF(scope.atts, scope.params, "swf-container");
         scope.timer = $interval(function(){
           var el = $('#ytPlayer-'+scope.playerId)[0];

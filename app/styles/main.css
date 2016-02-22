@@ -391,3 +391,13 @@ div.form-control.input-lg.new-comment-box {
 .navbar-form .form-control.youscriber-searchbar {
   width: 240px;
 }
+
+.youscriber .form-control.ta-editor {
+    min-height: 300px;
+    height: auto;
+    overflow: auto;
+    font-family: inherit;
+    font-size: 100%;
+    margin:20px 0;
+    width: 100%;
+}

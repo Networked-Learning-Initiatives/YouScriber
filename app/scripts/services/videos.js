@@ -4,7 +4,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   var videosService = this;
 
   this.videos = [];
-  this.filter = "";
+  this.filter = '';
   this.videoFiltered = function () {
     if (videosService.filter.length > 0) {
       var results = videosService.videos.filter(function (element) {
@@ -16,6 +16,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     return videosService.videos;
   };
   this.currentVideo = {};
+  this.currentVideoPerms = {};
 
   this.getPublicVideos = function (user) {
     // console.log('in getPublicVideos');
@@ -26,6 +27,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     }
 
     $http({method: 'GET', url: '/api/videos', params: queryParams}).success(function (results) {
+      console.log('setting videos locally in video service to', results);
       videosService.videos = results;
     });
   };
@@ -52,7 +54,7 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     params.ytid = ytid;
     $http({method: 'GET', url: '/api/video/new', params: params})
       .success(function (results) {
-        // consider adding this info instead to the videoService.videos
+        // consider adding this info instead to the videosService.videos
         console.log(results);
         videosService.currentVideo = results;
         // $rootScope.$apply(function(){
@@ -73,7 +75,11 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
       }
       $http({method: 'GET', url: '/api/videos/' + id, params: params})
         .success(function (results) {
+          console.log('results');
+          console.log(results);
           videosService.currentVideo = results.video;
+          videosService.currentVideoPerms = results.can;
+
           // console.log('resolving', videosService.currentVideo);
           resolve(videosService.currentVideo);
         })
@@ -83,6 +89,24 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
         });
     });
     return this.currentVideo;
+  };
+
+  this.getPermissions = function (videoId) {
+    var promise = $q(function (resolve, reject) {
+      var params = {};
+      if (User.loggedIn()) {
+        params.user = User.user;
+      }
+      $http({method: 'GET', url: '/api/videos/' + videoId +'/permissions', params: params})
+        .success(function (results) {
+          resolve(results);
+        })
+        .error(function (error) {
+          console.error('error getting video permissions by videoId', videoId, error);
+          reject(error);
+        });
+      });
+    return promise;
   };
 
   function findCommentByTimeAndContent(time, content) {
@@ -95,11 +119,11 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   }
 
   this.addComment = function (timeAndComment) {
-    console.log('videoservice addComment');
+    console.log('videosService addComment');
     console.log(timeAndComment);
     var videoForComment = videosService.currentVideo;
     if (videosService.currentVideo.hasOwnProperty('comments')) {
-      var newComment = {comment: {time: timeAndComment.time, content: timeAndComment.comment, user: User.user.id, name: User.user.name,  video: videosService.currentVideo.id}};
+      var newComment = {comment: {time: timeAndComment.time, content: timeAndComment.comment, author: User.user,  video: videosService.currentVideo.id}};
       $http({method: 'GET', url: '/api/comment/new', params: newComment})
         .success(function (results) {
           if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
@@ -124,10 +148,10 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     }
   };
 
-  this.removeEntitiesPermissionsFromVideo = function (vid, entities, permGroup) {
-    console.log('removeEntitiesPermissionsFromVideo::vid, entities, permGroup', vid, entities, permGroup);
+  this.removeEntitiesPermissionsFromVideo = function (vid, entities) {
+    console.log('removeEntitiesPermissionsFromVideo::vid, entities', vid, entities);
     return $q(function (resolve, reject) {
-      $http.post('/api/video/' + vid + '/entity-drop', {entities: entities, user: User.user.id, permGroup: permGroup})
+      $http.post('/api/video/' + vid + '/entity-drop', {entities: entities, user: User.user.id})
       .success(function () {
         resolve(true);
       })
@@ -137,29 +161,29 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
     });
   };
 
-  this.updateEntityPermissionsToVideo = function (entity, permGroup, video, permissions) {
-    console.log('updateEntityPermissionsToVideo::entity, permGroup, video, permissions:', entity, permGroup, video, permissions);
+  this.updateEntityPermissionsToVideo = function (videoId, entityPerm) {
+    console.log('updateEntityPermissionsToVideo::videoId, entityPerm:', videoId, entityPerm);
     return $q(function (resolve, reject) {
-      $http.post('/api/video/'+video+'/entity-mod', {entity:entity, user:User.user.id, permissions:permissions, permGroup:permGroup})
-      .success(function () {
-        resolve(true);
-      })
-      .error(function (error) {
-        reject(error);
-      });
+      $http.post('/api/video/'+videoId+'/entity-mod', {entityPerm:entityPerm, user:User.user.id})
+        .success(function () {
+          resolve(true);
+        })
+        .error(function (error) {
+          reject(error);
+        });
     });
   };
 
-  this.addEntityPermissionsToVideo = function (entity, permGroup, video, permissions) {
-    console.log('addEntityPermissionsToVideo::entity, permGroup, video, permissions:', entity, permGroup, video, permissions);
+  this.addEntityPermissionsToVideo = function (videoId, entityPerm) {
+    console.log('addEntityPermissionsToVideo::videoId, entityPerm:', videoId, entityPerm);
     return $q(function (resolve, reject) {
-      $http.post('/api/video/'+video+'/entity-add', {entity:entity, user:User.user.id, permissions:permissions, permGroup:permGroup})
-      .success(function () {
-        resolve(true);
-      })
-      .error(function (error) {
-        reject(error);
-      });
+      $http.post('/api/video/'+videoId+'/entity-add', {entityPerm:entityPerm, user:User.user.id})
+        .success(function () {
+          resolve(true);
+        })
+        .error(function (error) {
+          reject(error);
+        });
     });
   };
 
@@ -170,44 +194,8 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
       return false;
     }
 
-    if (videosService.currentVideo && videosService.currentVideo.permissions && videosService.currentVideo.permissions.users) {
-      var userCanAdmin = Object.keys(videosService.currentVideo.permissions.users).some(function (permKey) {
-        var perm = videosService.currentVideo.permissions.users[permKey];
-        return perm.id === User.user.id && perm.hasOwnProperty('admin') && perm.admin;
-      });
-      if (userCanAdmin) {
-        return true;
-      }
-    }
-
-    if (videosService.currentVideo && videosService.currentVideo.permissions && videosService.currentVideo.permissions.groups) {
-      var groupCanAdmin = Object.keys(videosService.currentVideo.permissions.groups).some(function (permKey) {
-        var perm = videosService.currentVideo.permissions.groups[permKey];
-        return User.user.groups.some(function (group) {
-          // if (perm.id === group.id && perm.hasOwnProperty('admin') && perm.admin) {
-          //   return true;
-          // }
-          return perm.id === group.id && perm.hasOwnProperty('admin') && perm.admin;
-        });
-      });
-      if (groupCanAdmin) {
-        return true;
-      }
-    }
-
-    if (videosService.currentVideo && videosService.currentVideo.permissions && videosService.currentVideo.permissions.organizations) {
-      var orgCanAdmin = Object.keys(videosService.currentVideo.permissions.organizations).some(function (permKey) {
-        var perm = videosService.currentVideo.permissions.organizations[permKey];
-        return User.user.orgs.some(function (org) {
-          // if (perm.id === org.id && perm.hasOwnProperty('admin') && perm.admin) {
-          //   return true;
-          // }
-          return perm.id === org.id && perm.hasOwnProperty('admin') && perm.admin;
-        });
-      });
-      if (orgCanAdmin) {
-        return true;
-      }
+    if (videosService.currentVideoPerms.hasOwnProperty('canAdmin') && videosService.currentVideoPerms.canAdmin === true) {
+      return true;
     }
 
 
@@ -215,45 +203,12 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   };
 
   this.userCan = function (permType) {
-    // console.log('can:', permType);
-    // console.log(videosService.currentVideo.permissions.users.tgm);
-    if (videosService.currentVideo && videosService.currentVideo.permissions && videosService.currentVideo.permissions.users) {
-      var entityCanPerm = Object.keys(videosService.currentVideo.permissions.users).some(function (permKey) {
-        var perm = videosService.currentVideo.permissions.users[permKey];
-        // console.log(perm);
-        // console.log(User.user);
-        return perm.id === User.user.id && perm.hasOwnProperty(permType) && perm[permType];
-        
-      });
-      if (entityCanPerm) {
-        return true;
-      }
-    }
-
-    if (videosService.currentVideo && videosService.currentVideo.permissions && videosService.currentVideo.permissions.groups) {
-      var entityCanPerm = Object.keys(videosService.currentVideo.permissions.groups).some(function (permKey) {
-        var perm = videosService.currentVideo.permissions.groups[permKey];
-        return User.user.groups.some(function (group) {
-          return perm.id === group.id && perm.hasOwnProperty(permType) && perm[permType];
-        });
-      });
-      if (entityCanPerm) {
-        return true;
-      }
-    }
-
-    if (videosService.currentVideo && videosService.currentVideo.permissions && videosService.currentVideo.permissions.organizations) {
-      var entityCanPerm = Object.keys(videosService.currentVideo.permissions.organizations).some(function (permKey) {
-        var perm = videosService.currentVideo.permissions.organizations[permKey];
-        return User.user.orgs.some(function (org) {
-          return perm.id === org.id && perm.hasOwnProperty(permType) && perm[permType];
-        });
-      });
-      if (entityCanPerm) {
-        return true;
-      }
-    }
-    return false;
+    // console.log('usercan', permType);
+    // console.log(videosService.currentVideoPerms);
+    // console.log(videosService.currentVideoPerms.hasOwnProperty('can'+permType) && videosService.currentVideoPerms['can'+permType] === true);
+    return (videosService.currentVideoPerms.hasOwnProperty('canAdmin') 
+      && videosService.currentVideoPerms.canAdmin === true) || // if user can admin, they can do anything
+      videosService.currentVideoPerms.hasOwnProperty('can'+permType) && // otherwise they should have the correct perm
+      videosService.currentVideoPerms['can'+permType] === true;
   };
-
 });

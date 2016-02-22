@@ -3,7 +3,7 @@
     <form role="form" ng-submit="login()">
       <div class="form-group" ng-class="{'has-error': errorMessage.length > 0}">
         <label for="user">Username</label>
-        <input type="text" class="form-control" id="user" placeholder="Enter desired username" ng-model="username" autofocus>
+        <input type="text" class="form-control" id="user" placeholder="Enter desired username" ng-model="username" focus-if>
       </div>
       <div class="form-group" ng-class="{'has-error': errorMessage.length > 0}">
         <label for="password">Password</label>

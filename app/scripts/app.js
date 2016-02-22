@@ -11,7 +11,8 @@ angular.module('youScriberApp', [
     'angular-md5',
     'ngEnter',
     'ui.router',
-    'textAngular'
+    'textAngular',
+    'focus-if'
   ])
   .config(function($stateProvider, $urlRouterProvider, $provide) {
     $urlRouterProvider.otherwise('/dash');
@@ -38,12 +39,15 @@ angular.module('youScriberApp', [
           '$http', 'User',
           function ($stateParams, $state, $modal,
             $resource, Videos, $http, User) {
-            modalInstance = $modal.open({
+            var modalInstance = $modal.open({
               size: 'lg',
               templateUrl: "views/video/settings.html",
               resolve: {
                 video: function() {
                   return Videos.getVideo($stateParams.videoId);
+                },
+                permissions: function () {
+                  return Videos.getPermissions($stateParams.videoId);
                 }
               },
               controller: 'VideoSettings'
@@ -57,10 +61,14 @@ angular.module('youScriberApp', [
           }
         ],
         onExit: function() {
-          if (modalInstance) {
+          // console.log('onExit!');
+          if (typeof modalInstance !== 'undefined') {
             modalInstance.close();
           }
         }
+      })
+      .state('video.comments.settings.tab', {
+        url: '/:tab'
       })
       .state('video.comment', {
         // params: [],

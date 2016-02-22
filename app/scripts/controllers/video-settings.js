@@ -1,63 +1,60 @@
 'use strict';
 
-angular.module('youScriberApp').controller('VideoSettings', function ($scope, $http, User, video, Videos, $state, $modalInstance) {
+angular.module('youScriberApp').controller('VideoSettings', function ($scope, $http, User, video, Videos, $state, $modalInstance, permissions, $stateParams) {
   $scope.usernameSelected = '';
 
-  $scope.video = video;
-
-  // remember the initial permissions so we can diff when they save
-  $scope.initialPermissions = {};
-  // for (var permGroup in $scope.video.permissions) {
-  Object.keys($scope.video.permissions).forEach(function (permGroup) {
-
-    // });
-    $scope.initialPermissions[permGroup] = {};
-    // for (var entity in $scope.video.permissions[permGroup]) {
-    Object.keys($scope.video.permissions[permGroup]).forEach(function (entity) {
-
-      $scope.initialPermissions[permGroup][entity] = {};
-      // for (var perm in $scope.video.permissions[permGroup][entity]) {
-      Object.keys($scope.video.permissions[permGroup][entity]).forEach(function (perm) {
-        $scope.initialPermissions[permGroup][entity][perm] = $scope.video.permissions[permGroup][entity][perm];
-      });
-    });
-  });
-
-  var defaultPermissionsForNewUser = {
-    read: true,
-    author: false,
-    edit: false,
-    delete: false
+  $scope.tabs = {
+    user: true,
+    group: false,
+    organization: false,
   };
 
-  $scope.newUserPermissions = {
-    read: true,
-    author: false,
-    edit: false,
-    delete: false
+  $(document).on('keyup', function(e) {
+    console.log('esc!');
+    if(e.keyCode == 27) {
+      $(document).off('keyup');
+      $scope.dismiss();
+    }
+  });
+
+  if ($stateParams.hasOwnProperty('tab') && $stateParams.tab in $scope.tabs) {
+    $scope.tabs.user = false;
+    $scope.tabs[$stateParams.tab] = true;
+  }
+
+  $scope.userId = User.user.id;
+
+  $scope.video = video;
+  console.log(permissions);
+  $scope.permissions = permissions;
+
+  // remember the initial permissions so we can diff when they save
+  $scope.initialPermissions = $scope.permissions;
+
+  function didPermsChanged (initial, final) {
+    return initial.permission.view == final.permission.view &&
+      initial.permission.comment == final.permission.comment &&
+      initial.permission.admin == final.permission.admin;
+  }
+
+  $scope.finalPermissions = {
+    user: [],
+    group: [],
+    organization: []
+  };
+
+  // lists of entity ids to drop from permissions 
+  // (where videoId = $scope.video.id)
+  $scope.revokees = {
+    user: [],
+    group: [],
+    organization: []
   };
 
   $scope.dismiss = function () {
 
     $scope.$dismiss();
-  };
-
-  $scope.getUsernames = function (query) {
-    console.log('getUsernames::query:', query);
-    return $http.get('/api/users/' + query)
-      .then(function (response) {
-        // console.log(response);
-        // // return [];
-        // var results = response.data.map(function(thisUser){
-        //   console.log(thisUser);
-        //   console.log(thisUser.name);
-        //   var uname = thisUser.name;
-        //   return uname; //TODO: eventually return icon/avatar here?
-        // });
-        // console.log(results);
-        // return results;
-        return response.data;
-      });
+    $state.go('video.comments');
   };
 
   $scope.deleteVideo = function() {
@@ -70,184 +67,74 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
       .error(function (error) {
         console.error('error deleting video', error);
       });
-  } 
-
-  $scope.save = function () {
-    console.log('save the settings for the video');
-
-    // loop over the new permissions' permgroups' entities, 
-    // if the key is in inital, compare within, 
-    // if not, add the permissions
-
-    //for (var permGroup in $scope.video.permissions) {
-    Object.keys($scope.video.permissions).forEach(function (permGroup) {
-      // check $scope.initialPermissions for entities not in new to queue for deletion
-      var entityRemovals = [];
-      //for (var initialEntity in $scope.initialPermissions[permGroup]) {
-      Object.keys($scope.initialPermissions[permGroup].forEach(function (initialEntity) {
-        if (!($scope.video.permissions[permGroup].hasOwnProperty(initialEntity))) {
-          entityRemovals.push({name: initialEntity, id: $scope.initialPermissions[permGroup][initialEntity].id});
-        }
-      }));
-      //}
-      if (entityRemovals.length > 0) {
-        // tell the server to drop those entities' permissions
-        Videos.removeEntitiesPermissionsFromVideo(video.id, entityRemovals, permGroup);
-      }
-      //for (var entity in $scope.video.permissions[permGroup]) {
-      Object.keys($scope.video.permissions[permGroup].forEach(function (entity) {
-        // console.log()
-        if ($scope.initialPermissions[permGroup].hasOwnProperty(entity)) {
-          var entityPermissionChanges = [];
-          //for (var perm in $scope.video.permissions[permGroup][entity]) {
-          Object.keys($scope.video.permissions[permGroup][entity].forEach(function (perm) {
-            if ($scope.video.permissions[permGroup][entity][perm] !== $scope.initialPermissions[permGroup][entity][perm]) {
-              var change = {};
-              change[perm] = $scope.video.permissions[permGroup][entity][perm];
-              entityPermissionChanges.push(change);
-            }
-          }));
-          if (entityPermissionChanges.length > 0) {
-            //tell the server to make these changes
-            Videos.updateEntityPermissionsToVideo({name: entity, id: $scope.video.permissions[permGroup][entity].id}, permGroup, video.id, entityPermissionChanges);
-          }
-        } else {
-          // new entity gets permissions
-          // tell server to add {entity: $scope.video.permissions[permGroup][entity]}
-          var entityPermissionAdditions = [];
-          //for (var perm in $scope.video.permissions[permGroup][entity]) {
-          Object.keys($scope.video.permissions[permGroup][entity].forEach(function (perm) {
-            if (perm !== 'id' && $scope.video.permissions[permGroup][entity][perm] &&
-                (!($scope.initialPermissions[permGroup].hasOwnProperty(entity))
-                  || !($scope.initialPermissions[permGroup][entity].hasOwnProperty(perm))
-                  || $scope.video.permissions[permGroup][entity][perm] !== $scope.initialPermissions[permGroup][entity][perm])) {
-              var change = {};
-              change[perm] = $scope.video.permissions[permGroup][entity][perm];
-              entityPermissionAdditions.push(change);
-            }
-          }));
-          if (entityPermissionAdditions.length > 0) {
-            Videos.addEntityPermissionsToVideo({name: entity, id: $scope.video.permissions[permGroup][entity].id}, permGroup, video.id, entityPermissionAdditions);
-          }
-        }
-      }));
-    });
-
-    $scope.dismiss();
   };
 
-  $scope.keys = Object.keys;
-
-  // $scope.videoService = Videos;
-
-  $scope.revokeAll = function (permGroup, entity) {
-    console.log($scope.video.permissions);
-    console.log(permGroup);
-    console.log(entity);
-    delete $scope.video.permissions[permGroup][entity];
-    //idk
-  };
-
-  $scope.addNewUserPermission = function () {
-    // add the new permission to the current video.
-    $scope.newUserPermissions.id = $scope.usernameSelected.id;
-    video.permissions.users[$scope.usernameSelected.name] = $scope.newUserPermissions;
-
-    // clear the UI so another user can be added.
-    $scope.usernameSelected = '';
-    $scope.newUserPermissions = defaultPermissionsForNewUser;
-  };
-
-  $scope.groupSelected = '';
-
-  var defaultPermissionsForNewGroup = {
-    read: true,
-    author: false,
-    edit: false,
-    delete: false
-  };
-
-  $scope.newGroupPermissions = {
-    read: true,
-    author: false,
-    edit: false,
-    delete: false
+  $scope.go = function (tab) {
+    $state.go('video.comments.settings.tab', {tab:tab});
   };
 
   $scope.getGroups = function (query) {
     console.log('getGroups::query:', query);
-    console.log(User.getCurrentContext());
-    return $http.get('/api/groups/' + User.getCurrentContext().id + '/' + query)
+    console.log(User.user.id);
+    return $http.get('/api/groups/' + User.user.id + '/' + query)
       .then(function (response) {
-        // console.log(response);
-        // // return [];
-        // var results = response.data.map(function(thisGroup){
-        //   console.log(thisGroup);
-        //   console.log(thisGroup.title);
-        //   var groupName = thisGroup.title;
-        //   return groupName; //TODO: eventually return icon/avatar here?
-        // });
-        // console.log(results);
-        // return results;
-        return response.data;
+        console.log(response.data, $scope.initialPermissions.group);
+        return response.data.filter((group) => {
+          for (var i = 0; i < $scope.initialPermissions.group.length; i++) {
+            if ($scope.initialPermissions.group[i].entity.id == group.id) {
+              return false;
+            }
+          }
+          return true;
+        });
       });
-  };
-
-  $scope.addNewGroupPermission = function () {
-    // add the new permission to the current video.
-    $scope.newGroupPermissions.id = $scope.groupSelected.id;
-    video.permissions.groups[$scope.groupSelected.title] = $scope.newGroupPermissions;
-
-    // clear the UI so another user can be added.
-    $scope.groupSelected = '';
-    $scope.newGroupPermissions = defaultPermissionsForNewGroup;
-  };
-
-  $scope.orgSelected = '';
-
-  var defaultPermissionsForNewOrg = {
-    read: true,
-    author: false,
-    edit: false,
-    delete: false
-  };
-
-  $scope.newOrgPermissions = {
-    read: true,
-    author: false,
-    edit: false,
-    delete: false
   };
 
   $scope.getOrgs = function (query) {
     console.log('getOrgs::query:', query);
-    console.log(User.getCurrentContext());
-    return $http.get('/api/orgs/' + User.getCurrentContext().id + '/' + query)
+    console.log(User.user.id);
+    return $http.get('/api/orgs/' + User.user.id + '/' + query)
       .then(function (response) {
         console.log(response);
-        // return [];
-        // var results = response.data.map(function(thisOrg){
-        //   console.log(thisOrg);
-        //   console.log(thisOrg.title);
-        //   var orgName = thisOrg.title;
-        //   return orgName; //TODO: eventually return icon/avatar here?
-        // });
-        // console.log(results);
-        // return results;
-        return response.data;
+        return response.data.filter((org) => {
+          for (var i = 0; i < $scope.initialPermissions.organization.length; i++) {
+            if ($scope.initialPermissions.organization[i].entity.id == org.id) {
+              return false;
+            }
+          }
+          return true;
+        });
       });
   };
 
-  $scope.addNewOrgPermission = function () {
-    // add the new permission to the current video.
-    console.log($scope.newOrgPermissions, $scope.orgSelected);
-    $scope.newOrgPermissions.id = $scope.orgSelected.id;
-    video.permissions.organizations[$scope.orgSelected.title] = $scope.newOrgPermissions;
-    console.log(video.permissions.organizations[$scope.orgSelected.title]);
+  $scope.getUsernames = function (query) {
+    console.log('getUsernames::query:', query);
+    return $http.get('/api/users/' + query)
+      .then(function (response) {
+        console.log(response.data);
+        return response.data.filter((item) => {
+          return item.id != $scope.userId;
+        });
+      });
+  };
 
-    // clear the UI so another user can be added.
-    $scope.orgSelected = '';
-    $scope.newOrgPermissions = defaultPermissionsForNewOrg;
+  $scope.save = function () {
+    console.log('save the settings for the video');
+
+    // for each entity type, first perform revokations, then add
+    Videos.removeEntitiesPermissionsFromVideo($scope.video.id, $scope.revokees);
+    Object.keys($scope.finalPermissions).forEach((entityType) => {
+      console.log($scope.finalPermissions[entityType]);
+      $scope.finalPermissions[entityType].forEach((entityPermission) => {
+        if (entityPermission.hasOwnProperty('new') && entityPermission.new) {
+          Videos.addEntityPermissionsToVideo($scope.video.id, entityPermission);
+        } else if (entityPermission.modified) {
+          Videos.updateEntityPermissionsToVideo($scope.video.id, entityPermission);
+        }
+      });
+    });
+
+    $scope.dismiss();
   };
 
 });

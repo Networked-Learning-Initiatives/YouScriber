@@ -13,7 +13,7 @@ String.prototype.toHHMMSS = function () {
   return time;
 };
 
-angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User, Player, $state) {
+angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $window, $stateParams, $location, $rootScope, Videos, User, Player, $state, textAngularManager, $timeout) {
   $scope.videoId = $stateParams.videoId; //this is the video's id in OUR database
   // $scope.videoYTId;
   $scope.videoIdInProgress = $scope.videoId;
@@ -21,16 +21,25 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
 
   $scope.userService = User;
 
+  $scope.editorInitialized = false;
+
   $scope.Math = window.Math;
 
   if ($stateParams.hasOwnProperty('videoId')) {
-    // console.log('found video id:', $stateParams.videoId);
+    console.log('found video id:', $stateParams.videoId);
     $scope.videoId = $stateParams.videoId;
-    Videos.getVideo($scope.videoId);
-  }
+    Videos.getVideo($scope.videoId)
+      .then((result) => {
+        console.log('result', result);
+      }, (err) => {
+        console.log('error', err);
+      });
+  } //if we go in here, everything else needs to wait... have a race problem here?
 
   $scope.videosService = Videos;
+  console.log(Videos.currentVideo);
   $scope.videoYTId = Videos.currentVideo.ytid;
+  console.log($scope.videoYTId);
 
   $scope.comments = {};
 
@@ -55,24 +64,53 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
     }
   };
 
-  $scope.post = function () {
+  $scope.commentData = {
+    htmlComment: ''
+  };
 
+  $scope.post = function () {
+    console.log('POOOOOOOSTT', '|', $scope.commentData.htmlComment, '|', $scope);
     var theNewComment = {
       time: $scope.playerService.getCurrentTime(),
-      comment: $scope.newComment
+      comment: $scope.commentData.htmlComment
     };
 
     Videos.addComment(theNewComment);
 
-    $scope.newComment = '';
+    $scope.commentData.htmlComment = '';
+    console.log(theNewComment);
+    // textAngularManager.refreshEditor('editor1');
     $scope.playerService.playVideo();
   };
 
+  $scope.$watch('commentData.htmlComment', function(newValue, oldValue, scope) {
+    if ($scope.editorInitialized && Player.isPlaying()) {
+      $scope.playerService.pauseVideo();
+    }
+    console.log('commentData.htmlComment changed'); 
+  });
+
+  $scope.textAngularSetup = function ($element) {
+    $element.attr('enter-submit', 'post()');
+  };
+
   $scope.typing = function () {
+    console.log('typing');
     $scope.playerService.pauseVideo();
   };
 
   $scope.videoTime = 0;
+
+  $timeout(function() { // some horrible hacking to autofocus the editor: https://github.com/fraywing/textAngular/issues/74 
+    var editor = textAngularManager.retrieveEditor('editor1');
+    console.log('editor', editor);
+    var editorScope = editor.scope;
+    window.editorScope = editorScope;
+    $timeout(function() {
+      editorScope.displayElements.text[0].focus();
+      $scope.editorInitialized = true;
+    });
+  });
 
   $scope.$on("$destroy", function () {
     //TODO: cancel timer(s) created by yt directive!
@@ -80,6 +118,7 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   });
 
   $scope.settings = function () {
+    console.log('about to state.go video.comments.settings');
     $state.go('video.comments.settings');
   };
 

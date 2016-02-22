@@ -15,6 +15,16 @@ angular.module('youScriberApp').service('Player', function ($rootScope, $window)
     }
   };
 
+  // https://developers.google.com/youtube/js_api_reference#Playback_status
+
+  this.isPlaying = function () {
+    return this.player && this.player.getPlayerState() === 1;
+  }
+
+  this.isPause = function () {
+    return this.player && this.player.getPlayerState() === 2;
+  }
+
   this.playVideo = function() {
     if (this.player) {
       return this.player.playVideo();

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($scope, $routeParams, md5, $location, User, $http) {
+angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($scope, $routeParams, md5, $location, User, $http, $timeout) {
 
   var groupRegistrationCtrlScope = $scope;
 
@@ -10,6 +10,8 @@ angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($s
   $scope.groupExists = false;
   $scope.groupSelected = '';
   $scope.loadingGroups = false;
+
+  $scope.submitText = 'Submit';
 
   var CREATE_NEW_ID = -1;
 
@@ -22,14 +24,25 @@ angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($s
     return {
       newTitle: query,
       id: CREATE_NEW_ID,
-      title: NEW_TITLE_PREFIX + query + NEW_TITLE_SUFFFIX
+      name: NEW_TITLE_PREFIX + query + NEW_TITLE_SUFFFIX
     };
   }
 
+  $scope.checkNewGroupTitle = function () {
+    return $http.get('/api/groups/search/'+User.user.id+'/'+$scope.title)
+      .then(function(response){
+        console.log(response);
+        if (response && response.data && response.data.length > 0) {
+          $scope.groupExists = true;
+        } else {
+          $scope.groupExists = false;
+        }
+      });
+  };
+
   $scope.getGroups = function (query) {
     console.log('getGroups::query:', query);
-    console.log(User.getCurrentContext());
-    return $http.get('/api/groups/search/'+User.getCurrentContext().id+'/'+query)
+    return $http.get('/api/groups/search/'+User.user.id+'/'+query)
       .then(function(response){
         console.log(response);
         response.data.unshift(groupRegistrationCtrlScope.newGroupTemplate(query));
@@ -40,15 +53,17 @@ angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($s
   console.log($routeParams);
 
   $scope.registerGroup = function() {
-    if (!$scope.title || $scope.title === null || $scope.title.length < 1) {
+    console.log($scope.groupSelected);
+    if (!$scope.groupSelected || !$scope.groupSelected.title || $scope.groupSelected.title === null || $scope.groupSelected.title.length < 1) {
       $scope.errorMessage = 'please enter a title.';
       return;
     }
-    console.log($scope.title, $scope.description);
+    console.log($scope.groupSelected.title, $scope.description);
     $scope.groupExists = false;
     $scope.errorMessage = '';
     if ($scope.groupSelected.id === CREATE_NEW_ID) {
-      User.registerGroup($scope.title, $scope.description, 
+      console.log('creating new group');
+      User.registerGroup($scope.groupSelected.title, $scope.description, 
         function(data) {
           console.log('registered new group!');
           User.user.groups.push(data);
@@ -68,6 +83,17 @@ angular.module('youScriberApp').controller('GroupRegistrationCtrl', function ($s
   };
 
   $scope.joinGroup = function ($item, $model, $label) {
+    console.log('joinGroup', $item, $model, $label);
+    if ($item.newTitle) {
+      $item.title = $item.newTitle;
+    }
+    $timeout(function(){angular.element('#group-description').focus();});
+    if ($item && $item.description) {
+      $scope.description = $item.description;
+      $scope.submitText = 'Join Existing Group';
+    } else {
+      $scope.submitText = 'Create New Group';
+    }
     // console.log($scope.groupSelected);
     // console.log($item, $model, $label);
     // don't really need to do anythign until "save"

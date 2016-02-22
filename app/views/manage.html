@@ -1,5 +1,20 @@
 <div class="row dash">
   <div class="col-md-12 body">
-    
+    <form action="" class="form-horizontal">
+      <tabset vertical="true" type="pills">
+        <tab 
+          heading="memberPerm.entity.name" 
+          active="tabs.user" 
+          select="go(memberPerm.entity.name)"
+          ng-repeat="memberPerm in membershipPermissions">
+            <manage-settings-tab 
+              entity-name="'User'" 
+              initial-permissions="initialPermissions.user" 
+              final-permissions="finalPermissions.user"
+              revokees="revokees.user"
+              search="getUsernames"></manage-settings-tab>
+        </tab>
+      </tabset>
+    </form>
   </div>
 </div>

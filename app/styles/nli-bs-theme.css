@@ -4311,13 +4311,13 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .label-warning[href]:focus {
   background-color: #ec971f;
 }
-.label-danger {
+/*.label-danger {
   background-color: #ffff00;
 }
 .label-danger[href]:hover,
 .label-danger[href]:focus {
   background-color: #cccc00;
-}
+}*/
 .badge {
   display: inline-block;
   min-width: 10px;

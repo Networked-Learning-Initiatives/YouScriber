@@ -2,8 +2,8 @@
   <td class="comment-number"><a ng-click="seekTo()"><i class="fa fa-play"></i>&nbsp;{{idx+1}}</a></td>
   <td ng-show="videosService.userCan('edit')" class="comment-time"><span editable-text="timecomment.time" onaftersave="updateTime()">{{timecomment.time | secondsfilter}}</span></td>
   <td ng-show="!videosService.userCan('edit')" class="comment-time">{{timecomment.time | secondsfilter}}</td>
-  <td ng-show="videosService.userCan('edit')" class="comment-text"><span editable-text="timecomment.content" onaftersave="updateContent()">{{timecomment.content}}</span></td>
-  <td ng-show="!videosService.userCan('edit')" class="comment-text">{{timecomment.content}}</td>
-  <td class="comment-author">{{timecomment.name}}</td>
+  <td ng-show="videosService.userCan('edit')" class="comment-text"><div editable-text="timecomment.content" onaftersave="updateContent()" ng-bind-html="timecomment.content"></div></td>
+  <td ng-show="!videosService.userCan('edit')" class="comment-text" ng-bind-html="timecomment.content"></td>
+  <td class="comment-author">{{timecomment.author.name}}</td>
   <td ng-if="videosService.userCan('delete')"><a ng-click="delete()"><i class="fa fa-times"></i></a></td>
 </tr>

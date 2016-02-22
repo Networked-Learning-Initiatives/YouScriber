@@ -9,7 +9,8 @@ angular.module('youScriberApp').directive('enterSubmit', function () {
         if (code === 13) {
           if (!event.shiftKey) {
             event.preventDefault();
-            scope.$apply(attrs.enterSubmit);
+            console.log(scope);
+            scope.$parent.$apply(attrs.enterSubmit);
           }
         }
       });

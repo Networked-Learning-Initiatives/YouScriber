@@ -36,8 +36,7 @@ angular.module('youScriberApp').controller('OrganizationRegistrationCtrl', funct
 
   $scope.getOrgs = function (query) {
     console.log('getOrgs::query:', query);
-    console.log(User.getCurrentContext());
-    return $http.get('/api/orgs/search/'+User.getCurrentContext().id+'/'+query)
+    return $http.get('/api/orgs/search/'+User.user.id+'/'+query)
       .then(function(response){
         console.log(response);
         return response.data;

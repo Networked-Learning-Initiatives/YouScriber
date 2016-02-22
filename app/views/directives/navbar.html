@@ -37,14 +37,14 @@
             <li><a href="#"><i class="fa fa-user"></i>Invite Someone</a></li>
           </ul>
         </li>
-        <li class="dropdown" ng-show="userService.loggedIn()">
+        <!-- <li class="dropdown" ng-show="userService.loggedIn()">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{userService.getCurrentContext().name}}{{userService.getCurrentContext().title}}<span class="caret"></span></a>
           <ul class="dropdown-menu" role="menu">
             <li ng-click="userService.setCurrentContext(userService.user)">{{userService.user.name}}</li>
             <li ng-show="userService.user.orgs.length > 0"><hr></li>
             <li ng-repeat="org in userService.user.orgs" ng-click="userService.setCurrentContext(org)">{{org.title}}</li>
           </ul>
-        </li>
+        </li> -->
         <li ng-show="!userService.loggedIn()"><a href="#/login">Login</a></li>
         <li ng-show="userService.loggedIn()" ng-click="logout()"><a href="#/dash">Logout</a></li>
         <li ng-show="!userService.loggedIn()"><a href="#/register">Register</a></li>

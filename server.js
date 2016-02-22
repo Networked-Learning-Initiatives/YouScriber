@@ -1,3 +1,5 @@
+'use strict';
+
 var express = require('express');
 var app = express();
 // var pg = require('pg');  //Commented out until database implementation
@@ -11,13 +13,16 @@ app.use(bodyParser.urlencoded({extended: true})); // to support URL-encoded bodi
 
 var request = require('request');
 
+var models = require('./models.js');
+
+const YS_YT_API_KEY = 'AIzaSyB8ZeEIa_wX_kAASWoX-Lxuf_478BqRNg0';
 
 var connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'youscriber',
-    password: 'youscriber',
-    database: 'youscriber'
-  });
+  host: 'localhost',
+  user: 'youscriber',
+  password: 'youscriber',
+  database: 'youscriber'
+});
 connection.connect();
 
 var permissionIds = {
@@ -27,8 +32,6 @@ var permissionIds = {
   'delete': 4,
   'admin': 5
 };
-
-
 
 //CSRF Protection ------------------------------------------
 var cookieParser = require('cookie-parser');
@@ -96,120 +99,71 @@ function executeQuery(sql, params, success, failure) {
   });
 }
 
-function cbWrapper(callback) {
-  return function (result) {
-    callback(null, result);
-  };
-}
+// function getGroups (id) {
+//   return models.allUserGroups(id);
+// }
 
-function getGroups(id) {
-  return function (cb) {
-    var getGroupsQuery = 'select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where gm.ysuser=?';
-    executeQuery(getGroupsQuery, [id], cbWrapper(cb), cb);
-  };
-}
+// function getOrgs (id) {
+//   return models.allUserOrgs(id);
+// }
 
-function getOrgs(id) {
-  return function (cb) {
-    var getOrgsQuery = 'select o.id, o.title from organization o join organization_member om on om.organization=o.id where om.ysuser=?';
-    executeQuery(getOrgsQuery, [id], cbWrapper(cb), cb);
-  };
-}
-
-function getPublicVideos(callback, user) {
-
-  // we need to treat the union of the following several queries as a "derived table".
-  // the prefix and suffix here will make that happen, and group the results as we need them.
-  var queryPrefix = 'select * from ( ';
-  var querySuffix = ' ) as videos group by videos.id';
-
-  // this query finds out which videos have no permissions set for them (making them public)
-  // TODO: what would make a video private?
-  var publicVideoQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id where video.id not in (select video from user_privilege union select video from group_privilege union select video from organization_privilege) group by video.id';
-
-  // this query finds out which videos the current user has permissions for
-  // TODO: maybe limit this to "read" permission?
-  var videosForUserQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join user_privilege on user_privilege.video=video.id where user_privilege.ysuser=? group by video.id';
-
-  // default the usserId to null, in case we don't currently know who the user is.
-  var userId = 'null';
-  if (user && user.hasOwnProperty('id')) {
-    userId = user.id;
-  }
-
-  // here we start building the composite query
-  var unionQuery = queryPrefix + publicVideoQuery + ' union distinct ' + videosForUserQuery;
-  var unionParams = [];
-  unionParams.push(userId);
-
-  // this query finds out which videos the current user has permissions for through the current user's group memberships
-  // TODO: maybe limit this to "read" permission?
-  var videosForGroupQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join group_privilege on group_privilege.video=video.id where group_privilege.ysgroup in (?) group by video.id';
-  var groupId = [];
-
-  if (user != null && user.hasOwnProperty('groups')) {
-
-    // if the current user has groups, accumulate their ids so they can be used for this query
-    //for (var i=0; i< user.groups.length ; i++) {
-    user.groups.forEach(function (group) {
-      groupId.push(group.id);
+app.get('/api/groups/search/:uid/:groupSubString', (req, res) => {
+  console.log('search for group with substr', req.params.groupSubString, 'for user', req.params.uid);
+  models.User.findById(req.params.uid)
+    .then((user) => {
+      user.getConfirmedGroups()
+        .then((groups) => {
+          var filteredGroups = groups.filter((group) => {
+            return group.name.toLowerCase().indexOf(req.params.groupSubString.toLowerCase()) > -1;
+          });
+          console.log(filteredGroups);
+          res.status(200).json(filteredGroups);
+        })
     });
-    unionParams.push(groupId);
+});
 
-    // add this query to the composite query started above
-    unionQuery = unionQuery + ' union ' + videosForGroupQuery;
-  }
+app.get('/api/orgs/search/:uid/:orgSubString', (req, res) => {
+  console.log('search for org with substr', req.params.orgSubString, 'for user', req.params.uid);
+  models.User.findById(req.params.uid)
+    .then((user) => {
+      user.getConfirmedOrgs()
+        .then((orgs) => {
+          console.log('orgs');
+          console.log(orgs);
+          var filteredOrgs = orgs.filter((org) => {
+            console.log('thisorg');
+            console.log(org);
+            return org.name.toLowerCase().indexOf(req.params.orgSubString.toLowerCase()) > -1;
+          });
+          console.log('filteredOrgs');
+          console.log(filteredOrgs);
+          res.status(200).json(filteredOrgs);
+        })
+    });
+});
 
-  // this query finds out which videos the current user has permissions for through the current user's org memberships
-  // TODO: maybe limit this to "read" permission?
-  var videosForOrgQuery = 'select video.*, count(distinct comment.id) as comments from video left join comment on video.id=comment.video_id join organization_privilege on organization_privilege.video=video.id where organization_privilege.organization in (?) group by video.id';
-  var org = [];
-
-  if (user !== null && user.hasOwnProperty('orgs')) {
-
-    // if the current user has groups, accumulate their ids so they can be used for this query
-    for (var i=0; i<user.orgs.length; i++) {
-      org.push(user.orgs[i].id);
-    }
-    unionParams.push(org);
-
-    // add this query to the composite query started above
-    unionQuery = unionQuery + ' union ' + videosForOrgQuery;
-  }
-
-  // add the suffix on to the composite query
-  unionQuery = unionQuery + querySuffix;
-
-  // run the query and give the callback the results
-  executeQuery(unionQuery, unionParams, function(results){
-    callback(results);
-  });
-}
-
-app.post('/api/user/login', function (req, res) {
+app.post('/api/user/login', (req, res) => {
   if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('pwHash')) {
-
-    var checkLogin = 'select id from ysuser where name=? and pwhash=?';
-
-    executeQuery(checkLogin, [req.body.user, req.body.pwHash], 
-      function (loginResult){
-        console.log('login success', loginResult);
-        if (loginResult.length == 0) {
-          res.status(500).json({msg:'user or password incorrect'});
+    models.attemptLogin(req.body)
+      .then(results => {
+        if (results) {
+          let user = results[0];
+          let groups = results[1];
+          let orgs = results[2];
+          let managementPerms = results[3];
+          // console.log('attempt login results', user, groups, orgs);
+          res.status(200).json({
+            id: user.id,
+            orgs: orgs,
+            groups: groups,
+            managementPerms: managementPerms
+          });          
+        } else {
+          res.status(400).json({msg:'wrong username or password'});
         }
-        async.parallel([getGroups(loginResult[0].id), getOrgs(loginResult[0].id)], function(error, results){
-          if (error) {
-            res.status(500).json({msg:error});
-          }
-          else {
-            console.log(results[0], results[1]);
-            res.status(200).json({id:loginResult[0].id, groups:results[0], orgs:results[1]});
-          }          
-        });
-      },
-      function (loginError){
-        console.log('error in login', loginError);
-        res.status(500).json({msg:'error in login '+ loginError});
+      })
+      .catch(err => {
+        res.status(500).json({msg:'error attempting login '+err});
       });
   }
   else {
@@ -225,32 +179,20 @@ app.post('/api/user/logout', function (req, res) {
 
 //registration route
 app.post('/api/user', function (req, res) {
-  if (req.body.hasOwnProperty('user') && req.body.hasOwnProperty('email') && req.body.hasOwnProperty('pwHash')) {
-    var checkUser = 'select id from ysuser where name=?';
-    executeQuery(checkUser, [req.body.user], 
-      function (checkUserResult){
-        //there's no user already using the requested username
-        console.log(checkUserResult);
-        if (checkUserResult.length < 1) {
-          //add this user to the db
-          var insertNewUser = "insert into ysuser (name,email,pwhash) values (?,?,?)";
-          executeQuery(insertNewUser,[req.body.user, req.body.email, req.body.pwHash],
-            function (newUserSuccess) {
-              console.log(newUserSuccess);
-              res.status(201).json({id:newUserSuccess.insertId});
-            },
-            function (newUserError) {
-              res.status(500).json({msg:newUserError});
-            });
-        }
-        else {
-          res.status(500).json({msg:'username already exists'});
-        }
-        // res.json(200, {id:checkUserResult});
-      },
-      function (checkUserError){
-        console.log('error in checkUser', checkUserError);
-        res.status(500).json({msg:'error in checkUser', error: checkUserError});
+  if (req.body.hasOwnProperty('user') && 
+    req.body.hasOwnProperty('email') && 
+    req.body.hasOwnProperty('pwHash')) {
+
+    models.User.create({
+      name: req.body.user,
+      pwhash: req.body.pwHash,
+      email: req.body.email,
+    })
+      .then(result => {
+        res.status(200).json(result);
+      })
+      .catch(err => {
+        res.status(500).json({msg:'username already exists', error:err});
       });
   }
   else {
@@ -262,30 +204,51 @@ app.get('/api/videos', function (req, res) {
   var user = req.query.user;
   
   if (req.query.hasOwnProperty('user')) {
-    getPublicVideos(function(results) {
-      console.log(results);
-      res.status(200).json(results);
-    }, JSON.parse(user));
+    models.Video.getPublicVideos()
+      .then(results => {
+        // console.log(results);
+        res.status(200).json(results);
+      });
   }
 
   else {
-    getPublicVideos(function(results) {
-      // console.log('callback for else');
-      // console.log(results);
-      res.status(200).json(results);
-    });
+    console.log('api hit for public videos');
+    models.Video.getPublicVideos()
+      .then(results => {
+        // console.log('callback for else');
+        // console.log(results);
+        res.status(200).json(results);
+      });
   }
 });
 
-function addVideo (response, userId, httpResponse) {
-  // console.log(response.body.entry);
+function secondsFromISO8601 (part) {
+  let regex = new RegExp(/(?:(?:(\d+)H)?(\d+)M)?(\d+)S/);
+  let multipliers = [3600, 60, 1];
+  return regex.exec(part).filter(item => {
+    return typeof item !== 'undefined';
+  }).slice(1).reduce((prev, curr, i, fragments) => {
+    if (fragments.length > 1) {
+      if (fragments.length > 2) {
+        console.log(prev, curr, i);
+        return prev+multipliers[i]*curr;
+      } else {
+        return prev+multipliers.slice(1)[i]*curr;
+      }
+    } else {
+      return curr;
+    }
+  }, 0);
+}
 
-  var entry = JSON.parse(response.body).entry;
-  // console.log(entry);
-  var title = entry.title.$t;
-  var duration = entry.media$group.yt$duration.seconds;
-  var ytid = entry.media$group.yt$videoid.$t;
-  var thumb = entry.media$group.media$thumbnail[1].url;
+function addVideo (response, userId, httpResponse) {
+  console.log('add video fn');
+
+  var entry = JSON.parse(response.body).items[0];
+  var title = entry.snippet.title;
+  var duration = secondsFromISO8601(entry.contentDetails.duration);
+  var ytid = entry.id;
+  var thumb = entry.snippet.thumbnails.default.url;
   var video = {
     title: title,
     ytid: ytid,
@@ -295,47 +258,19 @@ function addVideo (response, userId, httpResponse) {
     comments: []
   };
 
-  // console.log('title, duration, thumb', title, duration, thumb);
-
-  var insertNewVideoQuery = 'insert into video (title, ytid, owner, thumbnail, duration) values (?, ?, ?, ?, ?)';
-  query(insertNewVideoQuery, [title, ytid, userId, thumb, duration])
-    .then(function(results) {
-      var permissionValues = Object.keys(permissionIds).map(function (perm) {
-        return permissionIds[perm];
-      });
-      RSVP.all(permissionValues.map(function (permId) {
-        var addPerms = 'insert into user_privilege(ysuser, permission, video) values (?,?,?)';
-        return query(addPerms, [userId, permId, results.insertId]);
-      }))
-        .then(function () {
-          var findUsers = "select id, name from ysuser where id=?";
-          return query(findUsers, [userId]).then(function (userResults) {
-            var userPerms = {};
-            userPerms[userResults[0].name] = {
-              id: userResults[0].id,
-              read: false,
-              author: false, 
-              edit: false, 
-              delete: false,
-              admin: false,
-            };
-            video.id = results.insertId;
-            video.permissions = {
-              users: userPerms,
-              groups: {},
-              organizations: {}
-            };
-          
-            httpResponse.status(200).json(video);
-          });
-        })
-        .catch(function (error) {
-          console.error('error setting new video perms', error);
-        });
-    })
-    .catch(function (error) {
-      httpResponse.status(500).send('problem with db query to add video '+error);
-    });
+  models.userAddsVideo({
+    title: video.title,
+    ytid: video.ytid,
+    thumbnail: video.thumbnail,
+    duration: video.duration, 
+    creatorId: userId,                     
+  }).then((newVideo) => {
+    console.log('success creating new video');
+    httpResponse.status(200).json(newVideo);
+  }).catch((creationError) => {
+    console.log('error creating new video', creationError);
+    httpResponse.status(500).json(creationError);
+  });
 }
 
 app.delete('/api/videos/:vid', function (req, res) {
@@ -418,37 +353,55 @@ app.get('/api/video/new', function(req, res) {
 
   console.log('new video');
   var user = JSON.parse(req.query.user);
-  console.log(user);
+  // console.log(user);
 
   // TODO: should check here that the user has permission to add the video?
 
-  request('http://gdata.youtube.com/feeds/api/videos/'+req.query.ytid+'?v=2&alt=json', function (error, response, body) {
+  let requestUrl = 'https://www.googleapis.com/youtube/v3/videos?id='+req.query.ytid+'&key='+YS_YT_API_KEY+'&part=snippet, contentDetails&fields=items(id,snippet(title,description,thumbnails),contentDetails(duration))';
+  console.log('requesting yt info: ', requestUrl);
+  request(requestUrl, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       // console.log(response); // Print the google web page.
 
       addVideo(response, user.id, res);
+    } else {
+      console.log('error getting yt data', error, response);
     }
   });
 });
 
 function addComment(comment, httpResponse) {
-  // comment={time:time, content:comment, user:User.user.id, video:this.currentVideo}
-
-  var insertCommentQuery = 'insert into comment (time, content, author, video_id) values (?,?,?,?)';
-  executeQuery(insertCommentQuery, [comment.time, comment.content, comment.user, comment.video], function(results){
-    console.log(results);
-    httpResponse.status(200).json({id:results.insertId});
-  }, function (err) {
-    httpResponse.status(500).send('problem with db query to add comment '+err);
-  });
-
+  // TODO: check that user has permission to comment
+  models.User.findById(comment.author.id)
+    .then((user) => {
+      user.maxPermsForVideo(comment.video)
+        .then((perms) => {
+          if (perms && ((perms.hasOwnProperty('canAdmin') && perms.canAdmin) || (perms.hasOwnProperty('canComment') && perms.canComment))) {
+            models.Comment.create({
+              time: comment.time,
+              content: comment.content,
+              videoId: comment.video,
+              authorId: comment.user.id
+            })
+              .then((comment) => {
+                httpResponse.status(200).json({id: comment.id});
+              })
+              .catch((err) => {
+                httpResponse.status(500).send('problem with db query to add comment '+err);
+              });
+          }
+          else {
+            httpResponse.status(500).send('user not permitted to comment on this video');
+          }
+        })
+    })
 }
 
 app.get('/api/comment/new', function(req, res) {
-  console.log('/api/comment/new', req.query);
+  console.log('/api/comment/new');
 
   if (!req.query.hasOwnProperty('comment')) {
-    var msg = 'got now comment data when adding new comment';
+    var msg = 'got no comment data when adding new comment';
     console.log(msg);
     res.status(500).json({msg:msg});
     return;
@@ -457,7 +410,7 @@ app.get('/api/comment/new', function(req, res) {
   var comment = JSON.parse(req.query.comment);
   console.log(comment);
 
-  if (!comment.hasOwnProperty('user')) {
+  if (!comment.hasOwnProperty('author')) {
     var msg = 'have to be logged in to add a new comment';
     console.log(msg);
     res.status(500).json({msg:msg});
@@ -474,141 +427,67 @@ app.get('/api/comment/new', function(req, res) {
   // TODO: check that user has permission to comment
 
   addComment(comment, res);
-
 });
 
 app.get('/api/videos/:vid', function(req, res) {
 
   console.log('/api/videos/:vid', req.params.vid);
-  console.log(req.params);
-  console.log(req.query);
-
-  // TODO: make these queries respect permissions
-  var videoDetailsQuery = 'select video.* from video where video.id=?';
-  var videoCommentsQuery = 'select comment.*, author.name from comment join ysuser author on comment.author=author.id where comment.video_id=?';
-  var videoUserPermissionsQuery = 'select p.name as permission, u.name as entity, u.id as entity_id from user_privilege up join ysuser u on u.id=up.ysuser join permission p on p.id=up.permission where video=?';
-  var videoGroupPermissionsQuery = 'select p.name as permission, g.title as entity, g.id as entity_id from group_privilege gp join ysgroup g on g.id=gp.ysgroup join permission p on p.id=gp.permission where video=?';
-  var videoOrgPermissionsQuery = 'select p.name as permission, org.title as entity, org.id as entity_id from organization_privilege op join organization org on org.id=op.organization join permission p on p.id=op.permission where video=?';
-
-  function makeSuccessCB(cb) {
-    return function (r) {
-      cb(null, r);
-    };
+  let userId = -1;
+  if (req.query.hasOwnProperty('user')) {
+    userId = JSON.parse(req.query.user).id;
   }
+  console.log('user requesting:', userId);
 
-  function aggregatePermissions (permissions) {
-    var resultingPermissions = {};
-    permissions.forEach(function(p){
-      if (resultingPermissions.hasOwnProperty(p.entity)) {
-        resultingPermissions[p.entity][p.permission]=true;
-      } else {
-        resultingPermissions[p.entity] = {
-          id: p.entity_id,
-          read: false,
-          author: false, 
-          edit: false, 
-          delete: false,
-          admin: false,
-        };
-        resultingPermissions[p.entity][p.permission]=true;
-      }
-    });
-    return resultingPermissions;
-  }
-
-  async.parallel([function(cb) {
-
-    executeQuery(videoDetailsQuery, [req.params.vid], makeSuccessCB(cb), cb);
-
-  }, function(cb) {
-
-    executeQuery(videoCommentsQuery, [req.params.vid], makeSuccessCB(cb), cb);
-
-  }, function(cb) {
-
-    executeQuery(videoUserPermissionsQuery, [req.params.vid], makeSuccessCB(cb), cb);
-
-  }, function(cb) {
-
-    executeQuery(videoGroupPermissionsQuery, [req.params.vid], makeSuccessCB(cb), cb);
-
-  }, function(cb) {
-
-    executeQuery(videoOrgPermissionsQuery, [req.params.vid], makeSuccessCB(cb), cb);
-
-  }], function(error, results) {
-
-    console.log('parallel callback', error, results);
-    if (error && (!error.hasOwnProperty('length')||error.length>0)) {
-      console.log('error case', error);
-      res.status(500).json({msg:error});
-    }
-    else {
-      console.log('videos/vid else');
-      if (results && (!results.hasOwnProperty('length')||(results.length>0 && results[0] && typeof results[0] != 'undefined'))) {
-        console.log('\n\n\n\n\n\n\n\n\nresults\n\n\n\n', results);
-        var video = results[0][0];
-        video.comments = results[1];
-        video.permissions = {
-          users: aggregatePermissions(results[2]),
-          groups: aggregatePermissions(results[3]),
-          organizations: aggregatePermissions(results[4])
-        }
-        console.log('video to be sent to client:');
-        console.log(video);
-        res.status(200).json({video:video});
-      }
-      else {
-        console.log('SHOULD NOT HAVE GOTTEN HERE!')
-        res.status(500).json({msg:'SHOULD NOT HAVE GOTTEN HERE!'});
-      }      
-    }          
+  let videoDetails = models.getVideo(req.params.vid, userId);
+  videoDetails.then((info) => {
+    res.json(info);
+  })
+  .catch(err=>{
+    console.log('error getting video info', err);
   });
 });
 
-// app.get('/posts/:slug', function(req, res) {
-//   var post = posts[req.params.slug];
-
-// app.get('/api/videos/org/:orgId', function (req, res) {
-//   getPublicVideos(function(results) {
-//     console.log(results);
-//     res.status(200).json(results);
-//   }, {org:orgId});
-// });
-
-// app.get('/api/videos/group/:gId', function (req, res) {
-//   getPublicVideos(function(results) {
-//     console.log(results);
-//     res.status(200).json(results);
-//   }, {group:gId});
-// });
-
-// app.get('/api/videos/user/:uId', function (req, res) {
-//   getPublicVideos(function(results) {
-//     console.log(results);
-//     res.status(200).json(results);
-//   }, {user:uId});
-// });
-
+app.get('/api/videos/:vid/permissions', function(req, res) {
+  console.log('/api/videos/:vid/permissions');
+  if (!req.query.hasOwnProperty('user')) {
+    res.status(500).json({msg: 'must be logged in to admin'});
+    return; // exit early if error
+  }
+  if (!req.params.hasOwnProperty('vid')) {
+    res.status(500).json({msg: 'must have videoId in URL to admin'});
+    return; // exit early if error
+  }
+  
+  var userId = JSON.parse(req.query.user).id;
+  models.User.findById(userId)
+    .then((user) => {
+      console.log('got user, now get perms');
+      return user.permissionsForAdmin(req.params.vid);
+    })
+    .then((permissions) => {
+      console.log('got perms, now send them back');
+      res.status(200).json(permissions);
+    })
+});
 
 app.post('/api/org', function (req, res) {
 
-  // check if we have the title and description and a user to be the owner
+  // check if we have the name and description and a user to be the owner
 
-  if (req.body.hasOwnProperty('title')) {
-    console.log('we found the title', req.body.title);
+  if (req.body.hasOwnProperty('name')) {
+    console.log('we found the name', req.body.name);
   }
 
-  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
+  if (req.body.hasOwnProperty('name') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
     // TODO: consider making description optional
-    var addOrganizationQuery = "insert into organization (title, description, owner) values (?,?,?)";
+    var addOrganizationQuery = "insert into organization (name, description, owner) values (?,?,?)";
     
-    executeQuery(addOrganizationQuery, [req.body.title, req.body.description, req.body.user.id], function(result) {
+    executeQuery(addOrganizationQuery, [req.body.name, req.body.description, req.body.user.id], function(result) {
       //called for success
       console.log(result);
       res.status(201).json({
         id:result.insertId,
-        title: req.body.title
+        name: req.body.name
       });
 
     }, function (err) {
@@ -617,67 +496,92 @@ app.post('/api/org', function (req, res) {
     });
   }
   else {
-    var errorMessage = 'title, description, and user are all required to create and organization';
+    var errorMessage = 'name, description, and user are all required to create and organization';
     res.status(400).send(errorMessage);
   }
 });
 
-app.post('/api/group', function (req, res) {
+app.post('/api/groups', function (req, res) {
 
-  // check if we have the title and description and a user to be the owner
+  // check if we have the name and description and a user to be the owner
 
-  if (req.body.hasOwnProperty('title')) {
-    console.log('we found the title', req.body.title);
+  if (req.body.hasOwnProperty('name')) {
+    console.log('we found the name', req.body.name);
   }
 
-  if (req.body.hasOwnProperty('title') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
+  if (req.body.hasOwnProperty('name') && req.body.hasOwnProperty('description') && req.body.hasOwnProperty('user')) {
     // TODO: consider making description optional
-    var addGroupQuery = "insert into ysgroup (title, description, owner) values (?,?,?)";
-    
-    executeQuery(addGroupQuery, [req.body.title, req.body.description, req.body.user.id], function(result) {
-      //called for success
-      console.log(result);
-      res.status(201).json({
-        id:result.insertId,
-        title: req.body.title
+    models.User.findById(req.body.user.id)
+      .then((user) => {
+        console.log('got user', user.id);
+        return user.createCreatedGroup({
+          name: req.body.name,
+          description: req.body.description
+        });
+      })
+      .then((newGroup) => {
+        res.status(201).json(newGroup);
+      })
+      .catch((error) => {
+        res.status(400).send('error creating group: '+err);
       });
-
-    }, function (err) {
-      // called for error
-      res.status(400).send('error creating group: '+err);
-    });
   }
   else {
-    var errorMessage = 'title, description, and user are all required to create and group';
+    var errorMessage = 'name, description, and user are all required to create and group';
     res.status(400).send(errorMessage);
   }
 });
 
 app.get('/api/users/:infix', function(req, res) {
-  var findUsers = "select id, name from ysuser where name like ?"; //TODO: eventually also grab their avatar?/icon?
-  executeQuery(findUsers, ['%'+req.params.infix+'%'], function(users) {
-    res.status(200).json(users);
-  }, function(errorMessage) {
-    res.status(204).send(errorMessage);
-  });
+  console.log('infix', req.params.infix);
+  models.User.findAll({
+    where: {
+      name: {
+        $like: '%'+req.params.infix+'%'
+      }
+    }
+  })
+    .then((users) => {
+      console.log(users);
+      res.status(200).json(users);  
+    })
+    .catch((errorMessage) => {
+      res.status(204).send(errorMessage);
+    });
 });
 
 app.get('/api/groups/:userId/:infix', function(req, res) {
-  var findgroups = "select g.id, g.title from ysgroup g join group_member gm on gm.ysgroup=g.id where g.title like ? and gm.ysuser=?"; //TODO: eventually also grab their avatar?/icon?
-  executeQuery(findgroups, ['%'+req.params.infix+'%', req.params.userId], function(groups) {
-    res.status(200).json(groups);
-  }, function(errorMessage) {
-    res.status(204).send(errorMessage);
-  });
+  // TODO: respect ManagementPermissions
+  models.Group.findAll({
+    where: {
+      name: {
+        $like: '%'+req.params.infix+'%'
+      }
+    }
+  })
+    .then((groups) => {
+      res.status(200).json(groups);  
+    })
+    .catch((errorMessage) => {
+      res.status(204).send(errorMessage);
+    });
 });
 
 app.get('/api/orgs/:userId/:infix', function(req, res) {
-  var findOrgs = "select o.id, o.title from organization o join organization_member om on om.organization=o.id where o.title like ? and om.ysuser=?"; //TODO: eventually also grab their avatar?/icon?
-  executeQuery(findOrgs, ['%'+req.params.infix+'%', req.params.userId], function(orgs) {
-    res.status(200).json(orgs);
-  }, function(errorMessage) {
-    res.status(204).send(errorMessage);
-  });
+  // TODO: respect ManagementPermissions
+  models.Organization.findAll({
+    where: {
+      name: {
+        $like: '%'+req.params.infix+'%'
+      }
+    }
+  })
+    .then((orgs) => {
+      res.status(200).json(orgs);  
+    })
+    .catch((errorMessage) => {
+      res.status(204).send(errorMessage);
+    });
 });
 
 function userCanAdmin(user, video) {
@@ -700,51 +604,35 @@ function userCanAdmin(user, video) {
     });
 }
 
-function dropAllEntitiesPermissionsFromVideo (entities, video, permGroup) {
-  var q = 'delete from ?? where video=? and ??=?';
-  var table, col, findCol;
-  if (permGroup == 'users') {
-    table = 'user_privilege';
-    col = 'ysuser';
-    
-    findCol = 'name';
-  } else if (permGroup == 'groups') {
-    table = 'group_privilege';
-    col = 'ysgroup';
-    
-    findCol = 'name';
-  } else if (permGroup == 'organizations') {
-    table = 'organization_privilege';
-    col = 'organization';
-    
-    findCol = 'name';
-  }
-  // var getEntityId = 'select id from ? where ? = ?';
-
-  console.log('dropAllEntitiesPermissionsFromVideo (entities, video, permGroup):', entities, video, permGroup);
-
-  return RSVP.all(entities.map(function (entity) {
-    // return query(getEntityId, [col, findCol, entity])
-    //   .then(function (entityIdResults) {
-        // if (entityIdResults.length > 0) {
-          console.log(mysql.format(q, [table, video, col, entity.id]));
-          return query(q, [table, video, col, entity.id]);
-        // } else {
-          // failed?
-        // }
-      // });
+function dropAllEntitiesPermissionsFromVideo (entities, video) {
+  console.log('dropAllEntitiesPermissionsFromVideo (entities, video)');
+  console.log(entities, video);
+  return Promise.all(Object.keys(entities).map((entityType) => {
+    // return Promise.all(entities[entityType].map((entityOfType) => {
+      return models.Permission.destroy({
+        where: {
+          entity: {
+            $in: entities[entityType]
+          },
+          entityType: entityType,
+          videoId: video
+        }
+      });
+    // }));
   }));
 }
 
 app.post('/api/video/:vid/entity-drop', function (req, res) {
   if (req.body.hasOwnProperty('entities') 
-    && req.body.hasOwnProperty('user') 
-    && req.body.hasOwnProperty('permGroup')) {
+    && req.body.hasOwnProperty('user')) {
     // check that at least right now this user somehow has admin permissions
-      userCanAdmin(req.body.user, req.params.vid)
-        .then(function (canAdmin) {
+      models.User.findById(req.body.user)
+        .then((user) => {
+          return user.canAdminVideo(req.params.vid);
+        })
+        .then((canAdmin) => {
           if (canAdmin) {
-            dropAllEntitiesPermissionsFromVideo(req.body.entities, req.params.vid, req.body.permGroup).then(function () {
+            dropAllEntitiesPermissionsFromVideo(req.body.entities, req.params.vid).then(function () {
               res.status(200).send('dropped permissions');
             });
           } else {
@@ -756,97 +644,76 @@ app.post('/api/video/:vid/entity-drop', function (req, res) {
   }
 });
 
-function addEntityPermissionsForVideo(entity, video, permGroup, permissions) {
-  var table, col;
-  if (permGroup == 'users') {
-    table = 'user_privilege';
-    col = 'ysuser';
-  } else if (permGroup == 'groups') {
-    table = 'group_privilege';
-    col = 'ysgroup';
-  } else if (permGroup == 'organizations') {
-    table = 'organization_privilege';
-    col = 'organization';
-  }
-
-  console.log('addEntityPermissionsForVideo(entity, video, permGroup, permissions):', entity, video, permGroup, permissions);
-  return RSVP.all(permissions.map(function (permission) {
-    console.log(permission);
-    var addPermQuery = 'insert into ?? (??, video, permission) values (?, ?, ?)';
-    console.log(mysql.format(addPermQuery, [table, col, entity, video, permissionIds[Object.keys(permission)[0]]]));
-    return query(addPermQuery, [table, col, entity, video, permissionIds[Object.keys(permission)[0]]]);
-  }))
-    .catch(function (error) {
-      console.error(error);
-    });
+function addEntityPermissionsForVideo(entityPerm, video) {
+  console.log('addEntityPermissionsForVideo(entityPerm, video)');
+  console.log(entityPerm, video);
+  return models.Permission.create({
+    entity: entityPerm.entity.id,
+    entityType: entityPerm.permission.entityType,
+    view: entityPerm.permission.view,
+    comment: entityPerm.permission.comment,
+    admin: entityPerm.permission.admin,
+    videoId: video
+  });
 }
 
 app.post('/api/video/:vid/entity-add', function (req, res) {
-  if (req.body.hasOwnProperty('entity') 
-    && req.body.hasOwnProperty('user') 
-    && req.body.hasOwnProperty('permGroup')) {
+  if (req.body.hasOwnProperty('entityPerm') 
+    && req.body.hasOwnProperty('user')) {
 
-      userCanAdmin(req.body.user, req.params.vid)
-        .then(function (canAdmin) {
+      models.User.findById(req.body.user)
+        .then((user) => {
+          return user.canAdminVideo(req.params.vid);
+        })
+        .then((canAdmin) => {
           if (canAdmin) {
-            addEntityPermissionsForVideo(req.body.entity.id, req.params.vid, req.body.permGroup, req.body.permissions).then(function () {
+            addEntityPermissionsForVideo(req.body.entityPerm, req.params.vid).then(function () {
               res.status(200).send('added permissions');
             });
           } else {
-            res.status(403).send();
+            res.status(403).send('not allowed to admin');
           }
         });
   } else {
-    res.status(400).send("entity, user, permGroup, and permissions required in body");
+    res.status(400).send("entityPerm, user required in body");
   }
 });
 
-function updateEntityPermissionsForVideo(entity, video, permGroup, permissions) {
-  var table, col;
-  if (permGroup == 'users') {
-    table = 'user_privilege';
-    col = 'ysuser';
-  } else if (permGroup == 'groups') {
-    table = 'group_privilege';
-    col = 'ysgroup';
-  } else if (permGroup == 'organizations') {
-    table = 'organization_privilege';
-    col = 'organization';
-  }
-
-  console.log('updateEntityPermissionsForVideo(entity, video, permGroup, permissions):', entity, video, permGroup, permissions);
-
-  return RSVP.all(permissions.map(function (permission) {
-    var updateQuery, updateParams;
-    if (permission[Object.keys(permission)[0]]) {
-      updateQuery = 'insert into ?? (??, video, permission) values (?, ?, ?)';
-      updateParams = [table, col, entity, video, permissionIds[Object.keys(permission)[0]]];
-    } else {
-      updateQuery = 'delete from ?? where ??=? and permission=? and video=?';
-      updateParams = [table, col, entity, permissionIds[Object.keys(permission)[0]], video];
+function updateEntityPermissionsForVideo(entityPerm, video) {
+  return models.Permission.findOne({
+    where: {
+      videoId: video,
+      entity: entityPerm.entity.id,
+      entityType: entityPerm.permission.entityType,
     }
-    console.log(mysql.format(updateQuery, updateParams));
-    return query(updateQuery, updateParams);
-  }));
+  })
+    .then((perm) => {
+      perm.view = entityPerm.permission.view;
+      perm.comment = entityPerm.permission.comment;
+      perm.admin = entityPerm.permission.admin;
+      return perm.save();
+    });
 }
 
 app.post('/api/video/:vid/entity-mod', function (req, res) {
-  if (req.body.hasOwnProperty('entity') 
-    && req.body.hasOwnProperty('user') 
-    && req.body.hasOwnProperty('permGroup')) {
+  if (req.body.hasOwnProperty('entityPerm') 
+    && req.body.hasOwnProperty('user')) {
 
-      userCanAdmin(req.body.user, req.params.vid)
-        .then(function (canAdmin) {
+      models.User.findById(req.body.user)
+        .then((user) => {
+          return user.canAdminVideo(req.params.vid);
+        })
+        .then((canAdmin) => {
           if (canAdmin) {
-            updateEntityPermissionsForVideo(req.body.entity.id, req.params.vid, req.body.permGroup, req.body.permissions).then(function () {
+            updateEntityPermissionsForVideo(req.body.entityPerm, req.params.vid).then(function () {
               res.status(200).send('modded permissions');
             });
           } else {
-            res.status(403).send();
+            res.status(403).send('not allowed to admin');
           }
         });
   } else {
-    res.status(400).send("entity, user, permGroup, and permissions required in body");
+    res.status(400).send("entityPerm, user required in body");
   }
 });
 
@@ -901,5 +768,15 @@ app.use(express.static(__dirname + '/app'));
 
 var server = app.listen(port, function () {
     console.log('Listening on port %d', server.address().port);
+
+    models.start()
+      .then(function () {
+        console.log('started, then...');
+        return models.Video.getPublicVideos();
+      })
+      .then(function (videos) {
+        console.log('got public videos');
+        // console.log('got public videos', videos);
+      });
 });
 
