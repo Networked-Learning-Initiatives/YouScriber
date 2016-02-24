@@ -7,7 +7,7 @@ var sequelize = new Sequelize(
   // { logging: console.log } // log all sql queries
   { logging: false } // log NO sql queries
 );
-var DROPTABLES = true;
+var DROPTABLES = false;
 
 console.log('process.env.YS_DROP', '|'+process.env.YS_DROP+'|');
 
