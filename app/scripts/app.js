@@ -11,8 +11,8 @@ angular.module('youScriberApp', [
     'angular-md5',
     'ngEnter',
     'ui.router',
-    'textAngular',
-    'focus-if'
+    'focus-if',
+    'angularTrix'
   ])
   .config(function($stateProvider, $urlRouterProvider, $provide) {
     $urlRouterProvider.otherwise('/dash');
@@ -105,17 +105,17 @@ angular.module('youScriberApp', [
         url: '/manage',
         templateUrl: 'views/manage.html',
         controller: 'ManageCtrl'
-      })
+      });
 
-    $provide.decorator('taOptions', ['$delegate', function(taOptions) {
-      taOptions.toolbar = [
-        // ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'quote'],
-        ['insertLink', 'bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'html'],
-        // ['justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],
-        //['html', 'insertImage','insertLink', 'insertVideo', 'wordcount', 'charcount']
-      ];
-      return taOptions;
-    }]);
+    // $provide.decorator('taOptions', ['$delegate', function(taOptions) {
+    //   taOptions.toolbar = [
+    //     // ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'quote'],
+    //     ['insertLink', 'bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'html'],
+    //     // ['justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],
+    //     //['html', 'insertImage','insertLink', 'insertVideo', 'wordcount', 'charcount']
+    //   ];
+    //   return taOptions;
+    // }]);
 
 
   })

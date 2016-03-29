@@ -18,24 +18,14 @@
     <form class="form-inline" role="form" ng-show="userService.loggedIn() && videosService.userCan('Comment')" ng-submit="post()">
       <div class="form-group">
         <label class="sr-only" for="comment">Enter a new comment here</label>
-        <div 
-          id="editor"
-          text-angular 
-          name="editor1"
-          focus-contenteditable 
-          focus-if 
+        <trix-editor 
+          angular-trix 
           ng-model="commentData.htmlComment" 
-          ta-text-editor-setup="textAngularSetup"
-          ta-focussed-class="focussed" 
-          ta-toolbar=" [['p','quote'],
-                      ['bold','italics','underline','ul','ol'],
-                      ['justifyLeft','justifyCenter','justifyRight','indent','outdent'],
-                      ['insertImage','insertLink','wordcount']]"> 
-                      <!-- 'pre' (code) functionality in first block? -->
-          </div>
-          <!-- <input type="hidden" name="comment" ng-model="commentData.htmlComment" required /> -->
-        <!-- <text-angular placeholder="Enter a new comment here..." ng-model="newComment" ta-text-editor-setup="textAreaSetup"></text-angular> -->
-  <!--      <textarea textangular cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()"></textarea> -->
+          class="trix-content" 
+          enter-submit="post()" 
+          keyup="keyUp()"
+          autofocus
+          placeholder="enter your video annotation/comment"></trix-editor>
       </div>
     </form>
   </div>

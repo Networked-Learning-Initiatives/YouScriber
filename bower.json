@@ -19,7 +19,9 @@
     "ngEnter": "~0.0.1",
     "ui-router": "~0.2.13",
     "textAngular": "~1.5.0",
-    "ng-focus-if": "~1.0.4"
+    "ng-focus-if": "~1.0.4",
+    "angular-trix": "^1.0.2",
+    "trix": "^0.9.5"
   },
   "devDependencies": {
     "angular-mocks": "1.2.6",
