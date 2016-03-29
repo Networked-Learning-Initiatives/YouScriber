@@ -51,7 +51,7 @@ angular.module('youScriberApp').directive('settingsTab', function () {
             view: scope.newEntityPermissions.view,
             comment: scope.newEntityPermissions.comment,
             admin: scope.newEntityPermissions.admin,
-            entityType: scope.entityName.toLowerCase()
+            entityType: scope.entityName.toLowerCase() // TODO: why tolowercase?!
           },
           new: true
         });

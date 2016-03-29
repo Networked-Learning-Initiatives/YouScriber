@@ -10,7 +10,7 @@ angular.module('youScriberApp').directive('manageSettingsTab', function () {
       'userId': '='
     },
     replace: true,
-    templateUrl: 'views/directives/settings-tab.html',
+    templateUrl: 'views/directives/manage-settings-tab.html',
     link: function (scope, elem, attrs) {
       // TODO: make sure we don't add an entity that already has permissions
 
@@ -24,20 +24,24 @@ angular.module('youScriberApp').directive('manageSettingsTab', function () {
         return {
           entity: {
             name: perm.entity.name,
-            id: perm.entity.id
+            id: perm.entity.id,
+            type: perm.entityType
           },
-          permission: {
-            view: perm.permission.view,
-            comment: perm.permission.comment,
-            admin: perm.permission.admin,
-            entityType: perm.permission.entityType
-          },
+          permissions: perm.permissions.map((singlePerm) => {
+            return {
+              videos: singlePerm.perm.videos,
+              memberships: singlePerm.perm.memberships,
+              entityType: singlePerm.perm.managerEntityType,
+              entity: singlePerm.perm.manager.id
+            }
+          }),
           modified: false
         };
       });
 
       scope.newEntity = {
-        name: ''
+        name: '',
+        type: ''
       };
 
       scope.addNewEntityPermission = function () {
@@ -46,12 +50,12 @@ angular.module('youScriberApp').directive('manageSettingsTab', function () {
             name: scope.newEntity.name,
             id: scope.newEntity.id
           },
-          permission: {
-            view: scope.newEntityPermissions.view,
-            comment: scope.newEntityPermissions.comment,
-            admin: scope.newEntityPermissions.admin,
-            entityType: scope.entityName.toLowerCase()
-          },
+          permissions: [{ //how is any of this gonna work?
+            videos: scope.newEntityPermissions.videos,
+            memberships: scope.newEntityPermissions.memberships,
+            entityType: scope.entityName.toLowerCase(),
+            entity: scope.entityName.toLowerCase()
+          }],
           new: true
         });
 

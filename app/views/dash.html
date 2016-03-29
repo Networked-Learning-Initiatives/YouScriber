@@ -21,7 +21,7 @@
         <li class="list-group-item">
           <a href="#/register/org"><i class="fa fa-plus"></i> Create New</a>
         </li>
-        <li class="list-group-item" ng-repeat="org in userService.user.orgs">{{org.title}}</li>
+        <li class="list-group-item" ng-repeat="org in userService.user.orgs">{{org.name}}</li>
       </ul>
     </panel>
     <panel panel-title="Groups">
@@ -29,7 +29,7 @@
         <li class="list-group-item">
           <a href="#/register/group"><i class="fa fa-plus"></i> Create New</a>
         </li>
-        <li class="list-group-item" ng-repeat="group in userService.user.groups">{{group.title}}</li>
+        <li class="list-group-item" ng-repeat="group in userService.user.groups">{{group.name}}</li>
       </ul>
   </div>
 </div>

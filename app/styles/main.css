@@ -368,14 +368,25 @@ i.fa.fa-times {
   cursor: pointer;
 }
 
-.nav.nav-pills.nav-stacked {
+.video-settings .nav.nav-pills.nav-stacked {
   float: left;
   margin-left: -95px;
 }
 
-.tab-content {
+
+.video-settings .tab-content {
   float:right;
   margin-right: -50px;
+}
+
+.management-settings .nav.nav-pills.nav-stacked {
+  float: left;
+  /*margin-left: -95px;*/
+}
+
+.management-settings .tab-content {
+  float:left;
+  margin-left: 100px;
 }
 
 .youscriber h1 {

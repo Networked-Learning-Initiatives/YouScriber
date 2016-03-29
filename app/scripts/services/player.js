@@ -27,6 +27,7 @@ angular.module('youScriberApp').service('Player', function ($rootScope, $window)
 
   this.playVideo = function() {
     if (this.player) {
+      console.log('playvideo');
       return this.player.playVideo();
     } else {
       console.error('no player in playVideo');

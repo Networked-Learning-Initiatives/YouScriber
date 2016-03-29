@@ -33,6 +33,9 @@ if (!('filter' in Promise)) {
 
 let PUBLIC_GROUP = null;
 let TEST_USER = null;
+let ADMIN_USER = null;
+let TODD_USER = null;
+let HARSH_USER = null;
 
 let READ_PERM = null;
 let AUTHOR_PERM = null;
@@ -426,36 +429,122 @@ var User = sequelize.define('user', {
         });
     },
     getManagementPerms: function () {
-      // get perms for this user
-      // get this user's groups,
-      //    get these groups' perms
-      //    get these groups' orgs
-      //        get these orgs' perms
-      // get this user's orgs
-      //    get these orgs' perms
+
+      // find perms for this user
+      //    for each of these entities, find all the other managers and their permissions
+
+
       return Promise.all([
         // get permissions for this user for video
         ManagementPermission.findAll({
           where: {
             managerEntity: this.id,
             managerEntityType: ENTITY_TYPE_USER,
-            $or: [
-              {
-                videos: true
-              }, {
-                memberships: true
-              }
-            ]
           }
         })
-          .then((mps) => {
-            return Promise.all(mps.map((mp) => {
-              return {
-                entity: this,
-                permission: mp
-              };
-            }));
-          }),
+        .then((mps) => {
+          return Promise.all(mps.map((mp) => {
+            console.log('mp.managedEntityType');
+            console.log(mp.managedEntityType);
+            if (mp.managedEntityType === ENTITY_TYPE_GROUP) {
+              return Group.findById(mp.managedEntity)
+                .then((group) => {
+                  return ManagementPermission.findAll({
+                    where: {
+                      managedEntity: group.id,
+                      managedEntityType: ENTITY_TYPE_GROUP,
+                    }
+                  })
+                  .then((perms) => {
+                    // this is all the entities that can manage this group
+                    // so i'd like to know the details of these entities
+                    // so join against user and group and org
+                    return Promise.all(perms.map((perm) => {
+                      if (perm.managerEntityType === ENTITY_TYPE_USER) {
+                        return User.findById(perm.managerEntity)
+                          .then((managerEntityResult) => {
+                            return {
+                              manager: managerEntityResult,
+                              perm: perm
+                            };
+                          });
+                      } else if (perm.managerEntityType === ENTITY_TYPE_GROUP) {
+                        return Group.findById(perm.managerEntity)
+                          .then((managerEntityResult) => {
+                            return {
+                              manager: managerEntityResult,
+                              perm: perm
+                            };
+                          });
+                      } else {
+                        return Organization.findById(perm.managerEntity)
+                          .then((managerEntityResult) => {
+                            return {
+                              manager: managerEntityResult,
+                              perm: perm
+                            };
+                          });
+                      }
+                    }))
+                    .then((managerEntities) => {
+                      return {
+                        entity: group,
+                        entityType: ENTITY_TYPE_GROUP,
+                        permissions: managerEntities 
+                      };
+                    });
+                  });
+                });
+            } else {
+              return Organization.findById(mp.managedEntity)
+                .then((org) => {
+                  return ManagementPermission.findAll({
+                    where: {
+                      managedEntity: org.id,
+                      managedEntityType: ENTITY_TYPE_ORG,
+                    }
+                  })
+                  .then((perms) => {
+                    return Promise.all(perms.map((perm) => {
+                      if (perm.managerEntityType === ENTITY_TYPE_USER) {
+                        return User.findById(perm.managerEntity)
+                          .then((managerEntityResult) => {
+                            return {
+                              manager: managerEntityResult,
+                              perm: perm
+                            };
+                          });
+                      } else if (perm.managerEntityType === ENTITY_TYPE_GROUP) {
+                        return Group.findById(perm.managerEntity)
+                          .then((managerEntityResult) => {
+                            return {
+                              manager: managerEntityResult,
+                              perm: perm
+                            };
+                          });
+                      } else {
+                        return Organization.findById(perm.managerEntity)
+                          .then((managerEntityResult) => {
+                            return {
+                              manager: managerEntityResult,
+                              perm: perm
+                            };
+                          });
+                      }
+                    }))
+                    .then((managerEntities) => {
+                      return {
+                        entity: org,
+                        entityType: ENTITY_TYPE_ORG,
+                        permissions: managerEntities 
+                      };
+                    });
+                  });
+                });
+              
+            }
+          }));
+        }),
 
         this.getConfirmedGroups()
           .then((groups) => {
@@ -467,60 +556,110 @@ var User = sequelize.define('user', {
                       return group.id;
                     })
                   },
-                  managerEntityType: ENTITY_TYPE_GROUP,
-                  $or: [
-                    {
-                      videos: true
-                    }, {
-                      memberships: true
-                    }
-                  ]
+                  managerEntityType: ENTITY_TYPE_GROUP
                 }
               })
-                .then((mps) => {
-                  return Promise.all(mps.map((mp) => {
-                    return Group.findById(mp.managerEntity)
+              .then((mps) => {
+                return Promise.all(mps.map((mp) => {
+                  if (mp.managedEntityType === ENTITY_TYPE_GROUP) {
+                    return Group.findById(mp.managedEntity)
                       .then((group) => {
-                        return {
-                          entity: group,
-                          permission: mp
-                        };
-                      });
-                  }));
-                }),
-
-              Promise.all(groups.map((group) => {
-                return group.getOrganization()
-                  .then((org) => {
-                    if (org) {
-                      console.log('org');
-                      console.log(org);
-                      return ManagementPermission.findAll({
-                        where: {
-                          managerEntity: org.id,
-                          managerEntityType: ENTITY_TYPE_ORG,
-                          $or: [
-                            {
-                              videos: true
-                            }, {
-                              memberships: true
+                        return ManagementPermission.findAll({
+                          where: {
+                            managedEntity: group.id,
+                            managedEntityType: ENTITY_TYPE_GROUP,
+                          }
+                        })
+                        .then((perms) => {
+                          // this is all the entities that can manage this group
+                          // so i'd like to know the details of these entities
+                          // so join against user and group and org
+                          return Promise.all(perms.map((perm) => {
+                            if (perm.managerEntityType === ENTITY_TYPE_USER) {
+                              return User.findById(perm.managerEntity)
+                                .then((managerEntityResult) => {
+                                  return {
+                                    manager: managerEntityResult,
+                                    perm: perm
+                                  };
+                                });
+                            } else if (perm.managerEntityType === ENTITY_TYPE_GROUP) {
+                              return Group.findById(perm.managerEntity)
+                                .then((managerEntityResult) => {
+                                  return {
+                                    manager: managerEntityResult,
+                                    perm: perm
+                                  };
+                                });
+                            } else {
+                              return Organization.findById(perm.managerEntity)
+                                .then((managerEntityResult) => {
+                                  return {
+                                    manager: managerEntityResult,
+                                    perm: perm
+                                  };
+                                });
                             }
-                          ]
-                        }
-                      })
-                        .then((mps) => {
-                          return Promise.all(mps.map((mp) => {
+                          }))
+                          .then((managerEntities) => {
+                            return {
+                              entity: group,
+                              entityType: ENTITY_TYPE_GROUP,
+                              permissions: managerEntities 
+                            };
+                          });
+                        });
+                      });
+                  } else {
+                    return Organization.findById(mp.managedEntity)
+                      .then((org) => {
+                        return ManagementPermission.findAll({
+                          where: {
+                            managedEntity: org.id,
+                            managedEntityType: ENTITY_TYPE_ORG,
+                          }
+                        })
+                        .then((perms) => {
+                          return Promise.all(perms.map((perm) => {
+                            if (perm.managerEntityType === ENTITY_TYPE_USER) {
+                              return User.findById(perm.managerEntity)
+                                .then((managerEntityResult) => {
+                                  return {
+                                    manager: managerEntityResult,
+                                    perm: perm
+                                  };
+                                });
+                            } else if (perm.managerEntityType === ENTITY_TYPE_GROUP) {
+                              return Group.findById(perm.managerEntity)
+                                .then((managerEntityResult) => {
+                                  return {
+                                    manager: managerEntityResult,
+                                    perm: perm
+                                  };
+                                });
+                            } else {
+                              return Organization.findById(perm.managerEntity)
+                                .then((managerEntityResult) => {
+                                  return {
+                                    manager: managerEntityResult,
+                                    perm: perm
+                                  };
+                                });
+                            }
+                          }))
+                          .then((managerEntities) => {
                             return {
                               entity: org,
-                              permission: mp
+                              entityType: ENTITY_TYPE_ORG,
+                              permissions: managerEntities 
                             };
-                          }));
+                          });
                         });
-                    } else {
-                      return null;
-                    }
-                  });
-              }))
+                      });
+                    
+                  }
+                }));
+              })
             ])
           }),
       
@@ -533,49 +672,120 @@ var User = sequelize.define('user', {
                     return org.get('id');
                   })
                 },
-                managerEntityType: ENTITY_TYPE_ORG,
-                $or: [
-                  {
-                    videos: true
-                  }, {
-                    memberships: true
-                  }
-                ]
+                managerEntityType: ENTITY_TYPE_ORG
               }
             })
-              .then((mps) => {
-                return Promise.all(mps.map((mp) => {
-                  return Organization.findById(mp.managerEntity)
-                    .then((org) => {
-                      return {
-                        entity: org,
-                        permission: mp
-                      };
+            .then((mps) => {
+              return Promise.all(mps.map((mp) => {
+                if (mp.managedEntityType === ENTITY_TYPE_GROUP) {
+                  return Group.findById(mp.managedEntity)
+                    .then((group) => {
+                      return ManagementPermission.findAll({
+                        where: {
+                          managedEntity: group.id,
+                          managedEntityType: ENTITY_TYPE_GROUP,
+                        }
+                      })
+                      .then((perms) => {
+                        // this is all the entities that can manage this group
+                        // so i'd like to know the details of these entities
+                        // so join against user and group and org
+                        return Promise.all(perms.map((perm) => {
+                          if (perm.managerEntityType === ENTITY_TYPE_USER) {
+                            return User.findById(perm.managerEntity)
+                              .then((managerEntityResult) => {
+                                return {
+                                  manager: managerEntityResult,
+                                  perm: perm
+                                };
+                              });
+                          } else if (perm.managerEntityType === ENTITY_TYPE_GROUP) {
+                            return Group.findById(perm.managerEntity)
+                              .then((managerEntityResult) => {
+                                return {
+                                  manager: managerEntityResult,
+                                  perm: perm
+                                };
+                              });
+                          } else {
+                            return Organization.findById(perm.managerEntity)
+                              .then((managerEntityResult) => {
+                                return {
+                                  manager: managerEntityResult,
+                                  perm: perm
+                                };
+                              });
+                          }
+                        }))
+                        .then((managerEntities) => {
+                          return {
+                            entity: group,
+                            entityType: ENTITY_TYPE_GROUP,
+                            permissions: managerEntities 
+                          };
+                        });
+                      });
                     });
-                }));
-              });
+                } else {
+                  return Organization.findById(mp.managedEntity)
+                    .then((org) => {
+                      return ManagementPermission.findAll({
+                        where: {
+                          managedEntity: org.id,
+                          managedEntityType: ENTITY_TYPE_ORG,
+                        }
+                      })
+                      .then((perms) => {
+                        return Promise.all(perms.map((perm) => {
+                          if (perm.managerEntityType === ENTITY_TYPE_USER) {
+                            return User.findById(perm.managerEntity)
+                              .then((managerEntityResult) => {
+                                return {
+                                  manager: managerEntityResult,
+                                  perm: perm
+                                };
+                              });
+                          } else if (perm.managerEntityType === ENTITY_TYPE_GROUP) {
+                            return Group.findById(perm.managerEntity)
+                              .then((managerEntityResult) => {
+                                return {
+                                  manager: managerEntityResult,
+                                  perm: perm
+                                };
+                              });
+                          } else {
+                            return Organization.findById(perm.managerEntity)
+                              .then((managerEntityResult) => {
+                                return {
+                                  manager: managerEntityResult,
+                                  perm: perm
+                                };
+                              });
+                          }
+                        }))
+                        .then((managerEntities) => {
+                          return {
+                            entity: org,
+                            entityType: ENTITY_TYPE_ORG,
+                            permissions: managerEntities 
+                          };
+                        });
+                      });
+                    });
+                  
+                }
+              }));
+            });
           })
       ])
-        .then((permissionsSets) => {
-          // console.log('permissionsSets');
-          // console.log(permissionsSets);
-          console.log('permissionsSets[1]');
-          console.log(permissionsSets[1]);
-          console.log('permissionsSets[1][1]');
-          console.log(permissionsSets[1][1]);
-          Promise.all(permissionsSets[1][1]).then((idk) => {
-            console.log('idk');
-            console.log(idk);
-          })
-          console.log('permissionsSets[1].length');
-          console.log(permissionsSets[1].length);
-          var flattened = flatten(permissionsSets).filter((obj) => {
-            return !(obj === null);
-          });
-          console.log('flattened');
-          console.log(flattened);
-          return flattened;
+      .then((permissionsSets) => {
+        var flattened = flatten(permissionsSets).filter((obj) => {
+          return !(obj === null);
         });
+        console.log('flattened');
+        console.log(flattened);
+        return flattened;
+      });
     }
   }
 });
@@ -624,6 +834,7 @@ exports.Organization = Organization;
 // exports.GroupMembership = GroupMembership;
 // exports.OrganizationMembership = OrganizationMembership;
 exports.Permission = Permission;
+exports.ManagementPermission = ManagementPermission;
 
 exports.ENTITY_TYPE_GROUP = ENTITY_TYPE_GROUP;
 exports.ENTITY_TYPE_ORG = ENTITY_TYPE_ORG;
@@ -727,7 +938,8 @@ exports.start = () => {
         } 
       });
     })
-    .spread(() => {
+    .spread((adminUser) => {
+      ADMIN_USER = adminUser;
       return User.findOrCreate({
         where: {
           email: 'test@youscriber.com',
@@ -737,6 +949,26 @@ exports.start = () => {
       })
       .spread(testUser => {
         TEST_USER = testUser;
+        return User.findOrCreate({
+          where: {
+            email: 'todd@youscriber.com',
+            name: 'todd',
+            pwhash: 'c60ba607dafb7a7150dcdf7ec61924b3', // md5 hash of todd
+          } 
+        });
+      })
+      .spread(toddUser => {
+        TODD_USER = toddUser;
+        return User.findOrCreate({
+          where: {
+            email: 'harsh@youscriber.com',
+            name: 'harsh',
+            pwhash: 'd4e3730e8cba214f85cddae5f9331d74', // md5 hash of harsh
+          } 
+        });
+      })
+      .spread(harshUser => {
+        HARSH_USER = harshUser;
         return Group.findOrCreate({
           where: {
             name: 'Public',
@@ -801,6 +1033,26 @@ exports.start = () => {
                       pending: false,
                     },
                   }),
+                  ManagementPermission.findOrCreate({ // admin user can manage ICG
+                    where: {
+                      videos: true,
+                      memberships: true,
+                      managerEntity: ADMIN_USER.id,
+                      managerEntityType: ENTITY_TYPE_USER,
+                      managedEntity: icgGroup.id,
+                      managedEntityType: ENTITY_TYPE_GROUP
+                    }
+                  }),
+                  ManagementPermission.findOrCreate({ // admin user can manage VT
+                    where: {
+                      videos: true,
+                      memberships: true,
+                      managerEntity: ADMIN_USER.id,
+                      managerEntityType: ENTITY_TYPE_USER,
+                      managedEntity: icgGroup.id,
+                      managedEntityType: ENTITY_TYPE_GROUP
+                    }
+                  }),
                   ManagementPermission.findOrCreate({ // test user can manage ICG
                     where: {
                       videos: true,
@@ -828,6 +1080,26 @@ exports.start = () => {
                   //     pending: false,
                   //   },
                   // }),
+                  ManagementPermission.findOrCreate({ // admin user can manage ICG
+                    where: {
+                      videos: true,
+                      memberships: true,
+                      managerEntity: TODD_USER.id,
+                      managerEntityType: ENTITY_TYPE_USER,
+                      managedEntity: icgGroup.id,
+                      managedEntityType: ENTITY_TYPE_GROUP
+                    }
+                  }),
+                  ManagementPermission.findOrCreate({ // admin user can manage ICG
+                    where: {
+                      videos: true,
+                      memberships: true,
+                      managerEntity: HARSH_USER.id,
+                      managerEntityType: ENTITY_TYPE_USER,
+                      managedEntity: icgGroup.id,
+                      managedEntityType: ENTITY_TYPE_GROUP
+                    }
+                  }),
                   Permission.findOrCreate({
                     where: {
                       entity: TEST_USER.id,

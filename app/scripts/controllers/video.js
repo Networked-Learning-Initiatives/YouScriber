@@ -69,29 +69,41 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
   };
 
   $scope.post = function () {
-    console.log('POOOOOOOSTT', '|', $scope.commentData.htmlComment, '|', $scope);
-    var theNewComment = {
-      time: $scope.playerService.getCurrentTime(),
-      comment: $scope.commentData.htmlComment
-    };
-
-    Videos.addComment(theNewComment);
-
-    $scope.commentData.htmlComment = '';
-    console.log(theNewComment);
-    // textAngularManager.refreshEditor('editor1');
+    console.log($scope.playerService);
     $scope.playerService.playVideo();
+    // var scp = $scope;
+    // $timeout(function () {
+      console.log('POOOOOOOSTT', '|', $scope.commentData.htmlComment, '|', $scope);
+    //   var theNewComment = {
+    //     time: $scope.playerService.getCurrentTime(),
+    //     comment: $scope.commentData.htmlComment
+    //   };
+
+    //   Videos.addComment(theNewComment);
+
+      $scope.commentData.htmlComment = '';
+    //   console.log(theNewComment);
+    //   // textAngularManager.refreshEditor('editor1');
+    // });
   };
 
-  $scope.$watch('commentData.htmlComment', function(newValue, oldValue, scope) {
-    if ($scope.editorInitialized && Player.isPlaying()) {
-      $scope.playerService.pauseVideo();
-    }
-    console.log('commentData.htmlComment changed'); 
-  });
+  // $scope.$watch('commentData.htmlComment', function(newValue, oldValue, scope) {
+  //   if ($scope.editorInitialized && Player.isPlaying()) {
+  //     $scope.playerService.pauseVideo();
+  //   }
+  //   console.log('commentData.htmlComment changed'); 
+  // });
 
   $scope.textAngularSetup = function ($element) {
     $element.attr('enter-submit', 'post()');
+    $element.attr('keyup', 'keyUp()');
+  };
+
+  $scope.keyUp = function () {
+    if ($scope.playerService.isPlaying()) {
+      console.log('pause video');
+      $scope.playerService.pauseVideo();
+    }
   };
 
   $scope.typing = function () {
@@ -121,6 +133,8 @@ angular.module('youScriberApp').controller('VideoCtrl', function ($scope, $windo
     console.log('about to state.go video.comments.settings');
     $state.go('video.comments.settings');
   };
+
+  console.log('video js scope', $scope);
 
 }).filter('timefilter', function () {
   return function (input) {

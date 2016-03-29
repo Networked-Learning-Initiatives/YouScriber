@@ -1,23 +1,25 @@
 <div class="form-group">
-  <h5>{{entityName}}s with Privileges</h5>
+  <h5>Entities with Privileges for {{entityName}}</h5>
   <table class="table">
     <tr>
-      <th>{{entityName}}</th>
-      <th>View</th>
-      <th>Comment</th>
-      <th>Admin.</th>
+      <th>Entity</th>
+      <th>Entity Type</th>
+      <th>Videos</th>
+      <th>Members</th>
       <th>Revoke all permissions</th>
     </tr>
-    <tr ng-repeat="perm in finalPermissions" ng-class="{'danger':perm.entity.id==userId && perm.permission.entityType == 'user'}">
-      <td>{{perm.entity.name}} <span class="label label-danger" ng-if="perm.entity.id==userId && perm.permission.entityType == 'user'">This is you!</span></td>
-      <td><input type="checkbox" ng-click="perm.modified=true" ng-model="perm.permission.view"></td>
-      <td><input type="checkbox" ng-click="perm.modified=true" ng-model="perm.permission.comment"></td>
-      <td><input type="checkbox" ng-click="perm.modified=true" ng-model="perm.permission.admin"></td>
-      <td><button class="btn btn-danger" ng-click="revokeAll(perm.entity.id)">Revoke</button></td>
+    <tr ng-repeat="permission in initialPermissions">
+      <td>{{permission.manager.name}} <span class="label label-danger" ng-if="permission.perm.managerEntityType == 'user' && permission.manager.id==userId">This is you!</span></td>
+      <td>
+        {{permission.perm.managerEntityType}}
+      </td>
+      <td><input type="checkbox" ng-click="permission.modified=true" ng-model="permission.perm.videos"></td>
+      <td><input type="checkbox" ng-click="permission.modified=true" ng-model="permission.perm.memberships"></td>
+      <td><button class="btn btn-danger" ng-click="revokeAll(permission.entity.id)">Revoke</button></td>
     </tr>
     <tr>
       <td>
-        <input type="text" ng-model="newEntity" placeholder="Add new {{entityName}}" typeahead="entity as entity.name for entity in search($viewValue)" typeahead-loading="loadingEntities" class="form-control" typeahead-on-select="addNewEntityPermission()">
+        <input type="text" ng-model="newEntity" placeholder="Add new entity" typeahead="entity as entity.name for entity in search($viewValue)" typeahead-loading="loadingEntities" class="form-control" typeahead-on-select="addNewEntityPermission()">
         <i ng-show="loadingMatchingEnitites" class="fa fa-refresh"></i>
       </td>
       <td><input type="checkbox" ng-model="newEntityPermissions.view"></td>

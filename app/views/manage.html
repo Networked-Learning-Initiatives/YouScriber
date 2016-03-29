@@ -1,17 +1,20 @@
 <div class="row dash">
   <div class="col-md-12 body">
-    <form action="" class="form-horizontal">
+    <form action="" class="management-settings form-horizontal">
+      <!-- <ul>
+        <li ng-repeat="mgmtPerm in initialPermissions">{{mgmtPerm.entity.name}}</li>
+      </ul> -->
       <tabset vertical="true" type="pills">
         <tab 
-          heading="memberPerm.entity.name" 
-          active="tabs.user" 
-          select="go(memberPerm.entity.name)"
-          ng-repeat="memberPerm in membershipPermissions">
+          heading="{{mgmtPerm.entity.name}}" 
+          active="tabs[mgmtPerm.entity.name]" 
+          select="go(mgmtPerm.entity.name)"
+          ng-repeat="mgmtPerm in initialPermissions">
             <manage-settings-tab 
-              entity-name="'User'" 
-              initial-permissions="initialPermissions.user" 
-              final-permissions="finalPermissions.user"
-              revokees="revokees.user"
+              entity-name="mgmtPerm.entity.name" 
+              initial-permissions="mgmtPerm.permissions" 
+              final-permissions="finalPermissions"
+              revokees="revokees"
               search="getUsernames"></manage-settings-tab>
         </tab>
       </tabset>

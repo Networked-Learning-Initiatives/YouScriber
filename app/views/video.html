@@ -19,6 +19,7 @@
       <div class="form-group">
         <label class="sr-only" for="comment">Enter a new comment here</label>
         <div 
+          id="editor"
           text-angular 
           name="editor1"
           focus-contenteditable 
@@ -32,7 +33,7 @@
                       ['insertImage','insertLink','wordcount']]"> 
                       <!-- 'pre' (code) functionality in first block? -->
           </div>
-          <input type="hidden" name="comment" ng-model="commentData.htmlComment" required />
+          <!-- <input type="hidden" name="comment" ng-model="commentData.htmlComment" required /> -->
         <!-- <text-angular placeholder="Enter a new comment here..." ng-model="newComment" ta-text-editor-setup="textAreaSetup"></text-angular> -->
   <!--      <textarea textangular cols="69" rows="5" id="comment" class="form-control input-lg" type="text" ng-model="newComment" placeholder="Enter a new comment here..." ng-change="typing()" autofocus size="57" enter-submit="post()"></textarea> -->
       </div>

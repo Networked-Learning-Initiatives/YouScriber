@@ -45,6 +45,7 @@
             <li ng-repeat="org in userService.user.orgs" ng-click="userService.setCurrentContext(org)">{{org.title}}</li>
           </ul>
         </li> -->
+        <li ng-show="userService.loggedIn()"><a href="#/manage"><i class="fa fa-cog"></i></a></li>
         <li ng-show="!userService.loggedIn()"><a href="#/login">Login</a></li>
         <li ng-show="userService.loggedIn()" ng-click="logout()"><a href="#/dash">Logout</a></li>
         <li ng-show="!userService.loggedIn()"><a href="#/register">Register</a></li>
