@@ -12,7 +12,7 @@
   <div class="col-md-6 left-col">
     
     <ys-youtube video-id="videosService.currentVideo.ytid" w="600" h="400" player-id="playerId" id="yt-obj-id" time="videoTime"></ys-youtube>
-    <timeline comments="videosService.currentVideo.comments" duration="videosService.currentVideo.duration" width="600" time="videoTime"></timeline>
+    <timeline comments="videosService.getCurrentVideo().comments" duration="videosService.currentVideo.duration" width="600" time="videoTime"></timeline>
 
     <!-- TODO: at some point need a more sophisticated check for this or else prevent access to this view in the first place -->
     <form class="form-inline" role="form" ng-show="userService.loggedIn() && videosService.userCan('Comment')" ng-submit="post()">

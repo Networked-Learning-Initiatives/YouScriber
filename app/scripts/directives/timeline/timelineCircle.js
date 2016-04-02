@@ -14,10 +14,25 @@ angular.module('youScriberApp').directive('timelineCircle', function($document, 
 
       var isDragging = false;
 
-      scope.style = {
-        top: '0px',
-        // left: '40px',
+      scope.getLeft = function () {
+        return (scope.time/scope.duration*scope.width)+'px';
       };
+
+      scope.style = {
+        top: '-2px',
+        // left: '40px',
+        left: '0px'
+      };
+
+      scope.$watch('time', function(newValue, oldValue, scope) {
+        // console.log('time', newValue); 
+        scope.style = {
+          top: '-2px',
+          // left: '40px',
+          left: scope.getLeft()
+        };
+      });
+
       
       $document.on('mousemove', mousemove);
       $document.on('mouseup', mouseup);

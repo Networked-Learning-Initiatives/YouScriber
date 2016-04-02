@@ -23,12 +23,37 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
         console.log('logged in!', data);
         userService.user = {name:user, id:data.id, orgs:data.orgs, groups:data.groups, managementPerms:data.managementPerms};
         userService.currentContext = userService.user;
-        $cookies['youScriber-user'] = JSON.stringify(userService.user);
+        $cookies['youScriber-user'] = JSON.stringify({
+          id: data.id,
+          name: user,
+          orgs: data.orgs,
+          groups: data.groups
+        });
         $rootScope.$emit('user-logged-in');
         successCallback(data);
       })
       .error(function(error) {
         errorCallback(error);
+      });
+  };
+
+  this.renewSession = function (userRenewAttemptData) {
+    console.log('renewing session');
+    $http.post('/api/user/renew', userRenewAttemptData)
+      .success(function(data) {
+        console.log('renewed session!', data);
+        userService.user = {name:userRenewAttemptData.name, id:data.id, orgs:data.orgs, groups:data.groups, managementPerms:data.managementPerms};
+        userService.currentContext = userService.user;
+        $cookies['youScriber-user'] = JSON.stringify({
+          id: data.id,
+          name: userRenewAttemptData.name,
+          orgs: data.orgs,
+          groups: data.groups
+        });
+        $rootScope.$emit('user-logged-in');
+      })
+      .error(function(error) {
+        console.error('error renewing session', error);
       });
   };
 
@@ -83,6 +108,7 @@ angular.module('youScriberApp').service('User', function ($rootScope, $http, $co
 
     if (!loggedIn && $cookies.hasOwnProperty('youScriber-user')) {
       this.user = JSON.parse($cookies['youScriber-user']);
+      this.renewSession({name:this.user.name, id: this.user.id});
       // console.log(this.user);
       loggedIn = true;
     }

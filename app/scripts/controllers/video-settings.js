@@ -58,9 +58,11 @@ angular.module('youScriberApp').controller('VideoSettings', function ($scope, $h
   };
 
   $scope.deleteVideo = function() {
-    $http.delete('/api/videos/'+$scope.video.id)
+    $http.delete('/api/videos/'+$scope.video.id, {params: {user:User.user.id}})
       .success(function (resp) {
             console.log('video deleted');
+            $scope.dismiss();
+            Videos.getPublicVideos(User.user);
             $state.go('dash');
   //          $modalInstance.dismiss('cancel');
       })

@@ -18,6 +18,10 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   this.currentVideo = {};
   this.currentVideoPerms = {};
 
+  this.getCurrentVideo = function () {
+    return this.currentVideo;
+  };
+
   this.getPublicVideos = function (user) {
     // console.log('in getPublicVideos');
 
@@ -75,8 +79,8 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
       }
       $http({method: 'GET', url: '/api/videos/' + id, params: params})
         .success(function (results) {
-          console.log('results');
-          console.log(results);
+          // console.log('results');
+          // console.log(results);
           videosService.currentVideo = results.video;
           videosService.currentVideoPerms = results.can;
 
@@ -110,26 +114,36 @@ angular.module('youScriberApp').service('Videos', function ($rootScope, $http, $
   };
 
   function findCommentByTimeAndContent(time, content) {
-    videosService.currentVideo.comments.forEach(function (comment, i) {
+    // console.log(time, content, videosService.currentVideo.comments);
+    var idx = -1;
+    videosService.currentVideo.comments.some(function (comment, i) {
+      // console.log('comment.time == time && comment.content == content');
+      // console.log(comment.time, comment.content);
+      // console.log(comment.time == time, comment.content == content);
       if (comment.time == time && comment.content == content) {
-        return i;
+        idx = i;
+        return true;
       }
     });
-    return -1;
+    return idx;
+    // return -1;
   }
 
   this.addComment = function (timeAndComment) {
-    console.log('videosService addComment');
-    console.log(timeAndComment);
+    // console.log('videosService addComment');
+    // console.log(timeAndComment);
     var videoForComment = videosService.currentVideo;
     if (videosService.currentVideo.hasOwnProperty('comments')) {
       var newComment = {comment: {time: timeAndComment.time, content: timeAndComment.comment, author: User.user,  video: videosService.currentVideo.id}};
       $http({method: 'GET', url: '/api/comment/new', params: newComment})
         .success(function (results) {
           if (videosService.currentVideo.ytid == videoForComment.ytid) { //try to make sure they didn't change videos since they posted the comment?
-            var commentIdx = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
-            if (commentIdx >= 0) {
-              videosService.currentVideo.comments[commentIdx].id = results.id;  // TODO:maybe also change some css here 
+            var commentToUpdate = findCommentByTimeAndContent(timeAndComment.time, timeAndComment.comment);
+          // console.log('commentIdx', commentIdx);
+            if (commentToUpdate > 0) {
+              console.log('update it then', commentToUpdate);
+              console.log(videosService.currentVideo.comments[commentToUpdate]);
+              videosService.currentVideo.comments[commentToUpdate].id = results.id;  // TODO:maybe also change some css here 
                                                                                 // so that they know the comment was saved 
                                                                                 // successfully, or to make it possible to edit comment
             }

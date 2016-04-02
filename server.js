@@ -38,9 +38,9 @@ var cookieParser = require('cookie-parser');
 var cookieSession = require('cookie-session');
 var csurf = require('csurf');
 
-app.use(cookieParser("I know what you did last summer, and I'm jealous of your ears."));
+app.use(cookieParser('I know what you did last summer, and I\'m jealous of your ears.'));
 app.use(cookieSession({
-  secret: "I know what you did last summer, and I'm jealous of your ears."
+  secret: 'I know what you did last summer, and I\'m jealous of your ears.'
 }));
 // app.use(express.csrf());
 
@@ -140,6 +140,32 @@ app.get('/api/orgs/search/:uid/:orgSubString', (req, res) => {
           res.status(200).json(filteredOrgs);
         })
     });
+});
+
+app.post('/api/user/renew', (req, res) => {
+  if (req.body.hasOwnProperty('name') && req.body.hasOwnProperty('id')) {
+    models.User.renewSession(req.body)
+      .then(function (renewed) {
+        console.log('renewed');
+        console.log(renewed);
+        if (renewed === false) {
+          res.status(500).json({msg:'error attempting renew session'});
+        } else {
+          let user = renewed[0];
+          let groups = renewed[1];
+          let orgs = renewed[2];
+          let managementPerms = renewed[3];
+          res.status(200).json({
+            id: user.id,
+            orgs: orgs,
+            groups: groups,
+            managementPerms: managementPerms
+          });
+        }
+      });
+  } else {
+    res.status(400).json({msg:'user and id fields required to renew session'});
+  }
 });
 
 app.post('/api/user/login', (req, res) => {
@@ -274,64 +300,29 @@ function addVideo (response, userId, httpResponse) {
 }
 
 app.delete('/api/videos/:vid', function (req, res) {
+  console.log('delete: /api/videos/:vid', req.query);
   //first check permissions if this user can admin this video, 
   // the user can delte this video IF the user has admin, or a group or org this user is in has admin
-  var userHasAdminQuery = 'select * from user_privilege where ysuser=? and video=? and permission=?';
-  query(userHasAdminQuery, [req.body.uid, req.params.vid, permissionIds.admin])
-    .then(function (results) {
-      if (results.rows.length > 0) {
-        //i'm allowed to delete it
-
-      } else {
-        //maybe my group or org memberships permit me to delete it
-        var userInGroupCanDelete = 'select p.name from group_member gm join group_privilege gp on gp.ysgroup=gm.ysgroup join permission p on p.id=gp.permission where p.id=? and gp.video=? and gm.ysuser=?';
-        query(userInGroupCanDelete, [permissionIds.admin, req.params.vid, req.body.uid])
-          .then(function (results) {
-            if (results.rows.length > 0) {
-              //i'm allowed to delete it
-
-            } else {
-              var userInOrgCanDelete = 'select p.name from organization_member om join organization_privilege op on op.organization=om.organization join permission p on p.id=op.permission where p.id=? and op.video=? and om.ysuser=?';
-              query(userInOrgCanDelete, [permissionIds.admin, req.params.vid, req.body.uid])
-                .then(function (results) {
-                  if (results.rows.length > 0) {
-                    //i'm allowed to delete it
-
-                  } else {
-                    res.status(500).send("permission denied");
-                  }
-                });
-            }
-          });
-      }
-    });
-  // if so, 
-  var commentVideoQuery = 'delete from comment where video_id=?';
-  var groupVideoQuery = 'delete from group_privilege where video=?';
-  var userVideoQuery = 'delete from user_privilege where video=?';
-  var organizationVideoQuery = 'delete from organization_privilege where video=?';
-  query(commentVideoQuery, [req.params.vid])
-    .then(function(){
-      console.log('sbout to delete privilieges');
-      return RSVP.all([
-        query(groupVideoQuery, [req.params.vid]), 
-        query(userVideoQuery, [req.params.vid]), 
-        query(organizationVideoQuery, [req.params.vid])
-      ]);
-    })
-    .then(function () {
-      var deleteVideoQuery = 'delete from video where id=?';
-      query(deleteVideoQuery, [req.params.vid])
-        .then(function () {
-          res.status(200).send('video deleted');
+   models.User.findById(req.query.user)
+    .then((user) => {
+      console.log('found user');
+      user.maxPermsForVideo(req.params.vid)
+        .then((perms) => {
+          console.log('got maxperms');
+          if (perms && perms.hasOwnProperty('canAdmin') && perms.canAdmin) {
+            console.log('can');
+            models.Video.findById(req.params.vid).then((video) => {
+              video.destroy().then(function () {
+                res.status(200).send('video deleted');
+              })
+            });
+          } else {
+            console.log('cannot');
+            console.log('cant delete');
+            res.status(500).send('you may not delete this');
+          }
         })
-        .catch(function (error) {
-          res.status(400).send('failed to delete2'+error);
-        });
     })
-    .catch(function (error) {
-      res.status(400).send('failed to delete1'+error);
-    });
   
 });
 
@@ -372,25 +363,32 @@ app.get('/api/video/new', function(req, res) {
 
 function addComment(comment, httpResponse) {
   // TODO: check that user has permission to comment
+  console.log('addComment');
   models.User.findById(comment.author.id)
     .then((user) => {
+      console.log('found user');
       user.maxPermsForVideo(comment.video)
         .then((perms) => {
+          console.log('got maxperms');
           if (perms && ((perms.hasOwnProperty('canAdmin') && perms.canAdmin) || (perms.hasOwnProperty('canComment') && perms.canComment))) {
+            console.log('maxperms look good');
             models.Comment.create({
               time: comment.time,
               content: comment.content,
               videoId: comment.video,
-              authorId: comment.user.id
+              authorId: comment.author.id
             })
-              .then((comment) => {
+              .then(function (comment) {
+                console.log('got to success in comment create');
                 httpResponse.status(200).json({id: comment.id});
               })
-              .catch((err) => {
+              .catch(function (err) {
+                console.log('got to error in create comment');
                 httpResponse.status(500).send('problem with db query to add comment '+err);
               });
           }
           else {
+            console.log('got to error in addComment');
             httpResponse.status(500).send('user not permitted to comment on this video');
           }
         })
@@ -723,12 +721,27 @@ function dropComment (cid) {
 }
 
 app.post('/api/comments/:cid/delete', function (req, res) {
-  dropComment(req.params.cid)
-    .then(function () {
-      res.status(200).send('deleted comment');
-    })
-    .catch(function (error) {
-      res.status(500).send('some problem dropping comment');
+  models.User.findById(req.body.user)
+    .then((user) => {
+      console.log('found user');
+      models.Comment.findById(req.params.cid)
+        .then((comment) => {
+          user.maxPermsForVideo(comment.videoId)
+            .then((perms) => {
+              console.log('got maxperms');
+              if (perms && ((perms.hasOwnProperty('canAdmin') && perms.canAdmin) || (perms.hasOwnProperty('canComment') && perms.canComment && comment.authorId === user.id))) {
+                console.log('can drop comment');
+                comment.destroy()
+                  .then(function () {
+                    res.status(200).send('deleted comment');
+                  })
+                  .catch(function (error) {
+                    res.status(500).send('some problem dropping comment');
+                  });
+              }
+            });
+          
+        });
     });
 });
 
@@ -749,8 +762,13 @@ app.post('/api/comments/:cid/time', function (req, res) {
 });
 
 function updateCommentContent (cid, content) {
-  var updateCommentQuery = 'update comment set content=? where id=?';
-  return query(updateCommentQuery, [content, cid]);
+  return models.Comment.findById(cid)
+    .then(function (comment) {
+      comment.content = content;
+      return comment.save();
+    });
+  // var updateCommentQuery = 'update comment set content=? where id=?';
+  // return query(updateCommentQuery, [content, cid]);
 }
 
 app.post('/api/comments/:cid/content', function (req, res) {

@@ -1,4 +1,4 @@
-angular.module('youScriberApp').directive('comment', function ($stateParams, $rootScope, Player, $state, Videos, $http) {
+angular.module('youScriberApp').directive('comment', function ($stateParams, $rootScope, Player, $state, Videos, $http, User) {
   return {
     restrict: 'E',
     scope: { 
@@ -56,7 +56,7 @@ angular.module('youScriberApp').directive('comment', function ($stateParams, $ro
       scope.delete = function () {
         console.log(scope.timecomment);
         Videos.currentVideo.comments.splice(scope.idx, 1);
-        $http.post('/api/comments/' + scope.timecomment.id + '/delete', {})
+        $http.post('/api/comments/' + scope.timecomment.id + '/delete', {user:User.user.id})
           .success(function (resp) {
             console.log('comment deleted');
           })

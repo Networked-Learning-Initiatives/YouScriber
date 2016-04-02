@@ -186,8 +186,35 @@ var User = sequelize.define('user', {
   pwhash: Sequelize.STRING,   // is hashed client-side before storing
   email: Sequelize.STRING,
 }, {
+  classMethods: {
+    renewSession: function(data) { 
+      return User.findById(data.id)
+        .then(function (user) {
+          console.log(user);
+          if (user && user.name === data.name) {
+            console.log('made it to 1 in renew session');
+            if (user && user.get('id')) {
+              console.log('made it to 2 in renew session');
+              return Promise.all([
+                user,
+                user.getConfirmedGroups(),
+                user.getConfirmedOrgs(),
+                user.getManagementPerms()
+              ]);
+            } else {
+              console.log('made it to 3 in renew session');
+              console.log('has no id');
+              return false;
+            }
+          }
+          console.log('made it to 4 in renew session');
+          return false;
+        });
+    }
+  },
   instanceMethods: {
     getConfirmedGroups: function () {
+      console.log('getConfirmedGroups');
       return Group.findAll({
         include: [{
           model: GroupMembership,
@@ -201,6 +228,7 @@ var User = sequelize.define('user', {
       });
     },
     getConfirmedOrgs: function () {
+      console.log('getConfirmedOrgs');
       return Promise.all([
         Organization.findAll({
           include: [{
@@ -233,6 +261,7 @@ var User = sequelize.define('user', {
               }
             });
           });
+          console.log('returning from getConfirmedorgs');
           return orgs;
         });
     },
@@ -344,7 +373,7 @@ var User = sequelize.define('user', {
       return this.maxPermsForVideo(videoId)
         .then((perms) => {
           console.log('gotmaxperms for admin');
-          console.log(perms);
+          // console.log(perms);
           if (perms && perms.hasOwnProperty('canAdmin') && perms.canAdmin) {
             console.log('so we can admin!');
             return Promise.all([
@@ -407,7 +436,7 @@ var User = sequelize.define('user', {
             ])
               .then((permissionsForVideo) => {
                 console.log('permissionsForVideo');
-                console.log(permissionsForVideo);
+                // console.log(permissionsForVideo);
                 return {
                   user: permissionsForVideo[0],
                   group: permissionsForVideo[1],
@@ -429,6 +458,7 @@ var User = sequelize.define('user', {
         });
     },
     getManagementPerms: function () {
+      console.log('getManagementPerms');
 
       // find perms for this user
       //    for each of these entities, find all the other managers and their permissions
@@ -445,7 +475,7 @@ var User = sequelize.define('user', {
         .then((mps) => {
           return Promise.all(mps.map((mp) => {
             console.log('mp.managedEntityType');
-            console.log(mp.managedEntityType);
+            // console.log(mp.managedEntityType);
             if (mp.managedEntityType === ENTITY_TYPE_GROUP) {
               return Group.findById(mp.managedEntity)
                 .then((group) => {
@@ -782,8 +812,8 @@ var User = sequelize.define('user', {
         var flattened = flatten(permissionsSets).filter((obj) => {
           return !(obj === null);
         });
-        console.log('flattened');
-        console.log(flattened);
+        console.log('flattened in getManagementPerms');
+        // console.log(flattened);
         return flattened;
       });
     }
