@@ -67,6 +67,9 @@ var csrfValue = function (req) {
 app.use(express.static(__dirname + '/app'));
 
 var port = 3333;
+if (process.env.YS_PORT) {
+  port = process.env.YS_PORT;
+}
 
 function query(sql, params) {
   var promise = new RSVP.Promise(function (resolve, reject) {
