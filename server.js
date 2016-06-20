@@ -19,9 +19,9 @@ const YS_YT_API_KEY = 'AIzaSyB8ZeEIa_wX_kAASWoX-Lxuf_478BqRNg0';
 
 var connection = mysql.createConnection({
   host: 'localhost',
-  user: 'youscriber',
-  password: 'youscriber',
-  database: 'youscriber'
+  user: process.env.YS_USER,
+  password: process.env.YS_PASS,
+  database: process.env.YS_DB
 });
 connection.connect();
 
