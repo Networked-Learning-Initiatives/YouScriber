@@ -233,7 +233,11 @@ app.get('/api/videos', function (req, res) {
   var user = req.query.user;
   
   if (req.query.hasOwnProperty('user')) {
-    models.Video.getPublicVideos()
+    console.log('req.query.user.id', JSON.parse(req.query.user).id);
+    models.User.findById(JSON.parse(req.query.user).id)
+      .then((user) => {
+        return user.getVideos()
+      })
       .then(results => {
         // console.log(results);
         res.status(200).json(results);

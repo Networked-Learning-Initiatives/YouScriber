@@ -816,6 +816,45 @@ var User = sequelize.define('user', {
         // console.log(flattened);
         return flattened;
       });
+    },
+    getVideos: function () {
+      return Promise.all([
+        Video.findAll({
+          where: {
+            creatorId: {
+              $ne: this.id
+            }
+          },
+          include: [{
+            model: Permission,
+            where: {
+              $or: [
+                {
+                  entityType: ENTITY_TYPE_GROUP,
+                  entity: PUBLIC_GROUP.get('id'),
+                  view: true
+                },
+                {
+                  entityType: ENTITY_TYPE_GROUP,
+                  entity: PUBLIC_GROUP.get('id'),
+                  view: true
+                }
+              ]
+            }
+          },
+          {
+            model: Comment
+          }]
+        }),
+        Video.findAll({
+          where: {
+            creatorId: this.id
+          }
+        })
+      ])
+        .then(function (videos) {
+          return videos[0].concat(videos[1]);
+        });
     }
   }
 });
