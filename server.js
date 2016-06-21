@@ -281,7 +281,7 @@ function addVideo (response, userId, httpResponse) {
   var title = entry.snippet.title;
   var duration = secondsFromISO8601(entry.contentDetails.duration);
   var ytid = entry.id;
-  var thumb = entry.snippet.thumbnails.default.url;
+  var thumb = entry.snippet.thumbnails.medium.url;
   var video = {
     title: title,
     ytid: ytid,
