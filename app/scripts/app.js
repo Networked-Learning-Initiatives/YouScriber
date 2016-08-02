@@ -1,21 +1,21 @@
-'use strict';
-
+/* global angular */
+'use strict'
 angular.module('youScriberApp', [
-    'ngCookies',
-    'ngResource',
-    'ngSanitize',
-    'ngRoute',
-    'youtubeapi',
-    'xeditable',
-    'ui.bootstrap',
-    'angular-md5',
-    'ngEnter',
-    'ui.router',
-    'focus-if',
-    'angularTrix'
-  ])
-  .config(function($stateProvider, $urlRouterProvider, $provide) {
-    $urlRouterProvider.otherwise('/dash');
+  'ngCookies',
+  'ngResource',
+  'ngSanitize',
+  'ngRoute',
+  'youtubeapi',
+  'xeditable',
+  'ui.bootstrap',
+  'angular-md5',
+  'ngEnter',
+  'ui.router',
+  'focus-if',
+  'angularTrix'
+])
+  .config(function ($stateProvider, $urlRouterProvider, $provide) {
+    $urlRouterProvider.otherwise('/dash')
     $stateProvider
       .state('dash', {
         url: '/dash',
@@ -41,29 +41,29 @@ angular.module('youScriberApp', [
             $resource, Videos, $http, User) {
             var modalInstance = $modal.open({
               size: 'lg',
-              templateUrl: "views/video/settings.html",
+              templateUrl: 'views/video/settings.html',
               resolve: {
-                video: function() {
-                  return Videos.getVideo($stateParams.videoId);
+                video: function () {
+                  return Videos.getVideo($stateParams.videoId)
                 },
                 permissions: function () {
-                  return Videos.getPermissions($stateParams.videoId);
+                  return Videos.getPermissions($stateParams.videoId)
                 }
               },
               controller: 'VideoSettings'
-            });
-            modalInstance.result['finally'](function() {
-              modalInstance = null;
+            })
+            modalInstance.result['finally'](function () {
+              modalInstance = null
               if ($state.$current.name === stateName) {
-                $state.go('ˆ');
+                $state.go('ˆ')
               }
-            });
+            })
           }
         ],
-        onExit: function() {
-          // console.log('onExit!');
+        onExit: function () {
+          // console.log('onExit!')
           if (typeof modalInstance !== 'undefined') {
-            modalInstance.close();
+            modalInstance.close()
           }
         }
       })
@@ -105,20 +105,8 @@ angular.module('youScriberApp', [
         url: '/manage',
         templateUrl: 'views/manage.html',
         controller: 'ManageCtrl'
-      });
-
-    // $provide.decorator('taOptions', ['$delegate', function(taOptions) {
-    //   taOptions.toolbar = [
-    //     // ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'quote'],
-    //     ['insertLink', 'bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'html'],
-    //     // ['justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],
-    //     //['html', 'insertImage','insertLink', 'insertVideo', 'wordcount', 'charcount']
-    //   ];
-    //   return taOptions;
-    // }]);
-
-
+      })
   })
-  .run(function(editableOptions) {
-    editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'
-  });
+  .run(function (editableOptions) {
+    editableOptions.theme = 'bs3' // bootstrap3 theme. Can be also 'bs2', 'default'
+  })

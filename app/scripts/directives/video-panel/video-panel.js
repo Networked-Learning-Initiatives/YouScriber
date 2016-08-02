@@ -1,7 +1,8 @@
-angular.module('youScriberApp').directive('videoPanel', function($location) {
+/* global angular */
+angular.module('youScriberApp').directive('videoPanel', function ($location) {
   return {
     restrict: 'E',
-    scope: { 
+    scope: {
       video: '=model',
       videoId: '=videoId'
     },
@@ -9,8 +10,8 @@ angular.module('youScriberApp').directive('videoPanel', function($location) {
     templateUrl: 'views/directives/video-panel.html',
     link: function (scope, iElement, iAttrs, controller) {
       // scope.nav = function() {
-      //   $location.path('video/'+scope.video.id);
-      // }; 
+      //   $location.path('video/'+scope.video.id)
+      // }
     }
-  };
-});
+  }
+})

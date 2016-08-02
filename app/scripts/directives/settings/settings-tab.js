@@ -1,7 +1,8 @@
+/* global angular */
 angular.module('youScriberApp').directive('settingsTab', function () {
   return {
     restrict: 'E',
-    scope: { 
+    scope: {
       'entityName': '=',
       'initialPermissions': '=',
       'finalPermissions': '=',
@@ -19,7 +20,7 @@ angular.module('youScriberApp').directive('settingsTab', function () {
         view: true,
         comment: false,
         admin: false
-      };
+      }
 
       scope.finalPermissions = scope.initialPermissions.map((perm) => {
         return {
@@ -34,12 +35,12 @@ angular.module('youScriberApp').directive('settingsTab', function () {
             entityType: perm.permission.entityType
           },
           modified: false
-        };
-      });
+        }
+      })
 
       scope.newEntity = {
         name: ''
-      };
+      }
 
       scope.addNewEntityPermission = function () {
         scope.finalPermissions.push({
@@ -54,32 +55,32 @@ angular.module('youScriberApp').directive('settingsTab', function () {
             entityType: scope.entityName.toLowerCase() // TODO: why tolowercase?!
           },
           new: true
-        });
+        })
 
-        // reset the newEntity model and permissions vars 
+        // reset the newEntity model and permissions vars
         // (so that a 2nd newentity [of this type] can be added)
         scope.newEntity = {
           name: ''
-        };
+        }
         scope.newEntityPermissions = {
           view: true,
           comment: false,
           admin: false
-        };
-      };
+        }
+      }
 
       scope.revokeAll = function (permEntityId) {
-        var toDelete = -1;
+        var toDelete = -1
         for (var i = 0; i < scope.finalPermissions.length; i++) {
           if (scope.finalPermissions[i].entity.id === permEntityId) {
-            toDelete = i;
-            break;
+            toDelete = i
+            break
           }
         }
         if (toDelete > -1) {
-          scope.revokees.push(scope.finalPermissions.splice(toDelete, 1)[0].entity.id);
+          scope.revokees.push(scope.finalPermissions.splice(toDelete, 1)[0].entity.id)
         }
-      };
+      }
     }
   }
-});
+})

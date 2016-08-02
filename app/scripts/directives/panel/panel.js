@@ -1,7 +1,8 @@
-angular.module('youScriberApp').directive('panel', function($location) {
+/* global angular */
+angular.module('youScriberApp').directive('panel', function ($location) {
   return {
     restrict: 'E',
-    scope: { 
+    scope: {
       panelTitle: '=panelTitle',
       footer: '='
     },
@@ -9,8 +10,8 @@ angular.module('youScriberApp').directive('panel', function($location) {
     replace: true,
     templateUrl: 'views/directives/panel.html',
     link: function (scope, iElement, iAttrs, controller) {
-      // console.log(iAttrs);
-      scope.panelTitle = iAttrs.panelTitle;
+      // console.log(iAttrs)
+      scope.panelTitle = iAttrs.panelTitle
     }
-  };
-});
+  }
+})
