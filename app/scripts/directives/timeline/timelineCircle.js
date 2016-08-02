@@ -38,15 +38,14 @@ angular.module('youScriberApp')
           }
         })
 
-        $document.on('mousemove', mousemove)
-        $document.on('mouseup', mouseup)
-
         iElement.on('click', function (event) {
           console.log('circle click')
           event.stopPropagation()
         })
 
         iElement.on('mousedown', function (event) {
+          $document.on('mousemove', mousemove)
+          $document.on('mouseup', mouseup)
           event.stopPropagation()
           // Player.pauseVideo()
           // Prevent default dragging of selected content
@@ -78,8 +77,8 @@ angular.module('youScriberApp')
           evt.stopPropagation()
           scope.isDragging = false
           delete scope.startDrag
-          // $document.off('mousemove', mousemove)
-          // $document.off('mouseup', mouseup)
+          $document.off('mousemove', mousemove)
+          $document.off('mouseup', mouseup)
           var newT = iElement.position().left / scope.width * scope.duration
           $rootScope.$emit('seek-to', newT)
           console.log(newT)
